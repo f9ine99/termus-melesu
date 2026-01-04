@@ -1,4 +1,4 @@
-# ጠርሙስ መልሱ (Termus Melesu)
+# ጠርሙስ መልሱ
 > **"Return the Bottle"** — A Digital Ledger for Ethiopian Retailers.
 
 [![Status](https://img.shields.io/badge/Status-In--Development-green)]()

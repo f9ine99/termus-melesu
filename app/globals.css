@@ -286,6 +286,15 @@
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Modern App Feel */
+    touch-action: manipulation;
+    /* Disables double-tap zoom */
+    overscroll-behavior-y: none;
+    /* Disables pull-to-refresh/rubber-banding on body */
+    -webkit-tap-highlight-color: transparent;
+    /* Removes tap highlight */
+    user-select: none;
+    /* Prevents text selection */
   }
 }
 

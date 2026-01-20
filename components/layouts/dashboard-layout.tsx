@@ -9,6 +9,8 @@ import SettingsScreen from "@/components/screens/settings-screen"
 import CustomerDetailScreen from "@/components/screens/customer-detail-screen"
 import type { SafeUser } from "@/lib/types"
 import { ChartIcon, PeopleIcon, SettingsIcon, AddIcon, LogoutIcon, XIcon, CheckIcon, UndoIcon, AlertIcon, InfoIcon } from "@/components/ui/icons"
+import { NotificationToast } from "@/components/ui/notification-toast"
+import { PullToRefresh } from "@/components/ui/pull-to-refresh"
 import { getCustomers, getTransactions, deleteTransaction } from "@/lib/data-store"
 import { translations, type Language } from "@/lib/translations"
 import { useEffect } from "react"
@@ -67,6 +69,15 @@ export default function DashboardLayout({ user, onLogout }: DashboardLayoutProps
 
   const handleFixSync = async () => {
     if (syncStatus === 'syncing') return
+
+    // Validate if there is any data to sync
+    const customers = getCustomers()
+    const transactions = getTransactions()
+
+    if (customers.length === 0 && transactions.length === 0) {
+      notify("No Data to Sync: Local storage is empty", "info")
+      return
+    }
 
     notify("Starting sync...", "info")
     const result = await triggerSync()
@@ -316,52 +327,26 @@ export default function DashboardLayout({ user, onLogout }: DashboardLayoutProps
           }`}
       >
         {/* Main Content Area */}
-        <main className="h-full overflow-y-auto no-scrollbar">{renderScreen()}</main>
+        <main className="h-full overflow-y-auto no-scrollbar">
+          <PullToRefresh onRefresh={async () => {
+            refreshData()
+            // Add a small artificial delay to show the spinner
+            await new Promise(resolve => setTimeout(resolve, 800))
+          }}>
+            {renderScreen()}
+          </PullToRefresh>
+        </main>
       </div>
 
       {/* Global Notification - Modern & Professional (Moved outside animated container) */}
+      {/* Global Notification - Modern & Professional */}
       {notification && (
-        <div className="fixed top-6 left-6 right-6 z-[100] animate-in slide-in-from-top-4 duration-500 ease-out">
-          <div className={`backdrop-blur-xl border px-6 py-4 rounded-[2rem] shadow-2xl flex items-center justify-between gap-4 transition-all ${notification.type === 'error' ? 'bg-red-500/90 border-red-500/20 text-white' :
-            notification.type === 'info' ? 'bg-blue-500/90 border-blue-500/20 text-white' :
-              'bg-foreground/90 border-white/10 text-background'
-            }`}>
-            <div className="flex items-center gap-4">
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${notification.type === 'error' ? 'bg-white/20' :
-                notification.type === 'info' ? 'bg-white/20' :
-                  'bg-background/20'
-                }`}>
-                {notification.type === 'error' ? <AlertIcon className="w-5 h-5" /> :
-                  notification.type === 'info' ? <InfoIcon className="w-5 h-5" /> :
-                    <CheckIcon className="w-5 h-5" />
-                }
-              </div>
-              <div className="flex flex-col">
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                  {notification.type === 'error' ? 'Error' : notification.type === 'info' ? 'Info' : 'Success'}
-                </p>
-                <p className="text-xs font-bold tracking-tight">{notification.message}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {lastTransactionId && notification.type === 'success' && (
-                <button
-                  onClick={handleUndo}
-                  className="px-4 py-2 bg-background text-foreground rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
-                >
-                  Undo
-                </button>
-              )}
-              <button
-                onClick={() => setNotification(null)}
-                className={`p-2 rounded-xl transition-all active:scale-95 ${notification.type === 'error' || notification.type === 'info' ? 'hover:bg-white/10' : 'hover:bg-background/10'}`}
-              >
-                <XIcon className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
+        <NotificationToast
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+          onUndo={lastTransactionId && notification.type === 'success' ? handleUndo : undefined}
+        />
       )}
     </div>
   )

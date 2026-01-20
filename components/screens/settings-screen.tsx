@@ -211,7 +211,7 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
         </div>
       </header>
 
-      <main className="flex-1 px-6 pb-32 overflow-y-auto no-scrollbar space-y-8 relative z-10">
+      <main className="flex-1 px-6 pt-6 pb-32 overflow-y-auto no-scrollbar space-y-8 relative z-10">
         {/* User Profile Card - Premium */}
         <div className="bg-card/50 backdrop-blur-sm border border-border rounded-[2.5rem] p-8 shadow-premium space-y-6">
           <div className="flex items-center gap-6">

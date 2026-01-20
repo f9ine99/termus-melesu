@@ -259,14 +259,16 @@ export async function syncTransactionDeleteToCloud(transactionId: string): Promi
 }
 
 // Process pending changes when coming back online
-async function processPendingChanges(): Promise<void> {
-    if (!isSupabaseConfigured() || !supabase) return
+async function processPendingChanges(): Promise<number> {
+    if (!isSupabaseConfigured() || !supabase) return 0
 
     const changes = getPendingChanges()
-    if (changes.length === 0) return
+    if (changes.length === 0) return 0
 
     console.log(`Processing ${changes.length} pending changes...`)
     updateSyncStatus('syncing')
+
+    let successCount = 0
 
     for (const change of changes) {
         try {
@@ -331,6 +333,7 @@ async function processPendingChanges(): Promise<void> {
 
             if (success) {
                 removePendingChange(change.id)
+                successCount++
             }
         } catch (e) {
             console.error(`Failed to process change ${change.id}:`, e)
@@ -341,6 +344,8 @@ async function processPendingChanges(): Promise<void> {
         setLastSyncTime(new Date().toISOString())
         updateSyncStatus('online')
     }
+
+    return successCount
 }
 
 // Get pending changes count (for UI indicator)
@@ -374,8 +379,13 @@ export async function triggerSync(): Promise<boolean> {
     if (!isOnline) return false
 
     try {
-        await processPendingChanges()
-        return true
+        const pendingCount = getPendingChanges().length
+        if (pendingCount === 0) {
+            return false
+        }
+
+        const successCount = await processPendingChanges()
+        return successCount > 0
     } catch {
         return false
     }

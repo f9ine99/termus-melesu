@@ -52,6 +52,8 @@ export const viewport: Viewport = {
 import { ThemeProvider } from "@/components/theme-provider"
 import { ColorThemeProvider } from "@/components/color-theme-provider"
 
+import { MobileRecommendation } from "@/components/mobile-recommendation"
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -67,6 +69,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ColorThemeProvider>
+            <MobileRecommendation />
             {children}
             <Analytics />
           </ColorThemeProvider>

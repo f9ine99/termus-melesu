@@ -70,7 +70,13 @@ export default function DashboardLayout({ user, onLogout }: DashboardLayoutProps
   const handleFixSync = async () => {
     if (syncStatus === 'syncing') return
 
-    // Validate if there is any data to sync
+    // Check network connectivity first
+    if (syncStatus === 'offline') {
+      notify("You're offline. Please check your internet connection and try again.", "error")
+      return
+    }
+
+    // Then validate if there is any data to sync
     const customers = getCustomers()
     const transactions = getTransactions()
 

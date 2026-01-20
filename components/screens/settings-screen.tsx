@@ -159,6 +159,12 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
   }
 
   const handlePushToCloud = async () => {
+    // Check network connectivity first
+    if (!navigator.onLine) {
+      onNotify?.("You're offline. Please check your internet connection and try again.", "error")
+      return
+    }
+
     const customers = getCustomers()
     const transactions = getTransactions().map(({ customerName, ...t }) => t) // Strip customerName
 
@@ -175,6 +181,8 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
       onNotifySuccess?.(t("pushSuccess"))
     } else if (result.error === 'already_synced') {
       onNotify?.("Already Synced: All your local data is already up to date in the cloud.", "info")
+    } else if (result.error === 'Offline') {
+      onNotify?.("You're offline. Please check your internet connection and try again.", "error")
     } else {
       // Use alert for critical configuration errors if notifySuccess is not enough
       if (result.error === 'Supabase not configured') {

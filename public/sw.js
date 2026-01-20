@@ -1,4 +1,4 @@
-const CACHE_NAME = 'retra-cache-v1';
+const CACHE_NAME = 'retra-cache-v2';
 const ASSETS_TO_CACHE = [
     '/',
     '/icon.svg',
@@ -33,13 +33,24 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// Fetch event - stale-while-revalidate strategy
+// Fetch event
 self.addEventListener('fetch', (event) => {
-    // Skip cross-origin requests (like Supabase)
+    // Skip cross-origin requests
     if (!event.request.url.startsWith(self.location.origin)) {
         return;
     }
 
+    // Navigation requests: Network first, fallback to offline page (root)
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request).catch(() => {
+                return caches.match('/');
+            })
+        );
+        return;
+    }
+
+    // Static assets: Stale-while-revalidate
     event.respondWith(
         caches.open(CACHE_NAME).then((cache) => {
             return cache.match(event.request).then((cachedResponse) => {
@@ -47,7 +58,6 @@ self.addEventListener('fetch', (event) => {
                     cache.put(event.request, networkResponse.clone());
                     return networkResponse;
                 }).catch(() => {
-                    // If network fails, return cached response if available
                     return cachedResponse;
                 });
 

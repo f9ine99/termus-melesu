@@ -160,6 +160,23 @@ export const translations = {
         "500ML": "500 ML",
         "300ML": "300 ML",
         customSize: "Custom Size",
+
+        // AI Summary
+        aiSummary: "AI Summary",
+        generateSummary: "Generate Summary",
+        generatingSummary: "Generating...",
+        today: "Today",
+        thisWeek: "This Week",
+        thisMonth: "This Month",
+        aiPowered: "AI Powered",
+        noTransactionsToSummarize: "No transactions to summarize",
+        summaryError: "Failed to generate summary",
+        closeSummary: "Close",
+        dailyInsight: "Daily Insight",
+        generateInsight: "Generate Insight",
+        insightLoading: "Generating...",
+        copySummary: "Copy Summary",
+        copied: "Copied!",
     },
     am: {
         // Navigation & General
@@ -320,5 +337,23 @@ export const translations = {
         "500ML": "500 ML",
         "300ML": "300 ML",
         customSize: "ሌላ መጠን",
+
+        // AI Summary
+        aiSummary: "AI ማጠቃለያ",
+        generateSummary: "ማጠቃለያ ፍጠር",
+        generatingSummary: "በመፍጠር ላይ...",
+        today: "ዛሬ",
+        thisWeek: "ይህ ሳምንት",
+        thisMonth: "ይህ ወር",
+        aiPowered: "AI የተጎለበተ",
+        noTransactionsToSummarize: "የሚጠቃለሉ ልውውጦች የሉም",
+        summaryError: "ማጠቃለያ መፍጠር አልተቻለም",
+        closeSummary: "ዝጋ",
+        dailyInsight: "የዕለት ተውኔታ",
+        generateInsight: "ተውኔታ አውጣ",
+        insightLoading: "ተውኔታ እየወጣ ነው...",
+        copySummary: "ኮፒ አድርግ",
+        copied: "ኮፒ ተደርጓል!",
     }
 }
+

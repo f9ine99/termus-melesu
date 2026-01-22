@@ -74,7 +74,7 @@ export default function DashboardLayout({ user, onLogout }: DashboardLayoutProps
 
     // Check network connectivity first
     if (syncStatus === 'offline') {
-      notify("You're offline. Please check your internet connection and try again.", "error")
+      notify(t("offlineError"), "error")
       return
     }
 
@@ -83,20 +83,20 @@ export default function DashboardLayout({ user, onLogout }: DashboardLayoutProps
     const transactions = getTransactions()
 
     if (customers.length === 0 && transactions.length === 0) {
-      notify("No Data to Sync: Local storage is empty", "info")
+      notify(t("noData"), "info")
       return
     }
 
-    notify("Starting sync...", "info")
+    notify(t("startingSync"), "info")
     const result = await triggerSync()
 
     if (result) {
-      notify("Sync completed successfully", "success")
+      notify(t("syncSuccess"), "success")
     } else {
       if (getPendingChangesCount() === 0) {
-        notify("Already Synced: All your data is safely stored in the cloud.", "info")
+        notify(t("alreadySynced"), "info")
       } else {
-        notify("Sync failed. Please check your connection.", "error")
+        notify(t("syncFailed"), "error")
       }
     }
     refreshData()

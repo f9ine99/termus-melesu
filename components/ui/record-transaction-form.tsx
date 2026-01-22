@@ -16,16 +16,18 @@ interface RecordTransactionFormProps {
 }
 
 const BOTTLE_RATES: Record<string, number> = {
-  "Soft Drink": 40,
-  "Beer": 25,
-  "Wine": 50,
-  "Other": 40,
+  "Soft Drink": 50,
+  "Beer": 50,
+  "Wine": 80,
+  "Sofi": 50,
+  "Other": 50,
 }
 
 const BOTTLE_BRANDS: Record<BottleCategory, string[]> = {
   "Soft Drink": ["Coca-Cola", "Mirinda", "Ambo-Water"],
-  "Beer": ["Habesha", "Bedele (500ml)", "Bedele (300ml)", "St. George"],
+  "Beer": ["Harer", "Habesha", "Bedele (500ml)", "Bedele (300ml)", "St. George"],
   "Wine": ["Awash", "Guder"],
+  "Sofi": ["Sofi Malt", "Ngus", "Sinqe"],
   "Other": ["Custom"],
 }
 
@@ -512,6 +514,7 @@ export default function RecordTransactionForm({ onTransactionComplete, onNavigat
                   if (newCat === "Soft Drink") setBottleType("Soft Drink (300ML)")
                   else if (newCat === "Beer") setBottleType("Beer")
                   else if (newCat === "Wine") setBottleType("Wine")
+                  else if (newCat === "Sofi") setBottleType("Sofi Malt")
                   else setBottleType("Other")
                 }}
                 className="w-full px-6 py-5 bg-card/50 backdrop-blur-sm border border-border rounded-[1.5rem] text-sm font-black tracking-tight focus:ring-2 focus:ring-primary/20 transition-all shadow-soft appearance-none"
@@ -519,6 +522,7 @@ export default function RecordTransactionForm({ onTransactionComplete, onNavigat
                 <option value="Soft Drink">{t("softDrink")}</option>
                 <option value="Beer">{t("beer")}</option>
                 <option value="Wine">{t("wine")}</option>
+                <option value="Sofi">{t("sofi")}</option>
                 <option value="Other">{t("other")}</option>
               </select>
               <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none opacity-30">
@@ -558,6 +562,7 @@ export default function RecordTransactionForm({ onTransactionComplete, onNavigat
                 <option value="Soft Drink (300ML)">{t("softDrink300ML")}</option>
                 <option value="Beer">{t("beer")}</option>
                 <option value="Wine">{t("wine")}</option>
+                <option value="Sofi Malt">{t("sofiMalt")}</option>
                 <option value="500ML">{t("500ML")}</option>
                 <option value="300ML">{t("300ML")}</option>
                 <option value="Other">{t("customSize")}</option>

@@ -5,8 +5,8 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 // System prompt for the AI summarizer
-const SYSTEM_PROMPT = `You are "Termus Melesu AI", a specialized business analyst for Ethiopian retail shopkeepers. 
-Your goal is to provide ultra-concise, "slim" summaries of bottle return transactions.
+const SYSTEM_PROMPT = `You are "Termus Melesu AI", a professional business analyst for retail shopkeepers in Ethiopia. 
+Your goal is to provide concise, high-impact summaries of bottle return transactions.
 
 Context:
 - "Issue": Bottles loaned to customers.
@@ -15,9 +15,11 @@ Context:
 
 Guidelines:
 1. Language: ALWAYS respond in the language requested (English or Amharic).
-2. Tone: Professional, direct, and extremely concise.
-3. Formatting: Use Markdown (bolding, bullet points). Keep it "slim" for small mobile screens.
-4. Structure: Follow a strict, compact structure. No fluff.`
+2. Tone: Professional and direct.
+3. Formatting: Use Markdown (bolding, bullet points).
+4. Brevity: Be concise. Focus on key numbers and critical insights. Avoid long explanations.`
+
+
 
 interface TransactionData {
     id: string
@@ -30,10 +32,16 @@ interface TransactionData {
     timestamp: string
 }
 
+interface ChatMessage {
+    role: "user" | "assistant" | "system"
+    content: string
+}
+
 interface SummarizeRequest {
     transactions: TransactionData[]
     period: "today" | "week" | "month" | "custom"
     language: "en" | "am"
+    messages?: ChatMessage[] // Optional messages for chat history
 }
 
 export async function POST(request: NextRequest) {
@@ -47,7 +55,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body: SummarizeRequest = await request.json()
-        const { transactions, period, language } = body
+        const { transactions, period, language, messages = [] } = body
 
         if (!transactions || transactions.length === 0) {
             return NextResponse.json(
@@ -68,20 +76,35 @@ export async function POST(request: NextRequest) {
             ? "Respond in Amharic (አማርኛ)."
             : "Respond in English."
 
-        const userPrompt = `${languageInstruction}
+        // If this is the first message (no history), create the initial summary prompt
+        let finalMessages: ChatMessage[] = []
 
-Provide a slim, structured summary of these ${periodLabel} transactions:
+        if (messages.length === 0) {
+            const userPrompt = `${languageInstruction}
+
+Provide a concise summary of these ${periodLabel} transactions:
 
 ${JSON.stringify(transactions, null, 2)}
 
-Strict Output Format:
-**Summary**: [1 sentence overview]
-**Metrics**:
-- Issued: [Total]
-- Returned: [Total]
-- Net: [Change]
-**Top Customers**: [Name (Net Change), ...]
-**Alert**: [1 short actionable insight]`
+Output Structure:
+1. **Overview**: 1 clear sentence on overall activity.
+2. **Metrics**: Issued, Returned, Net change, and **Deposited Cash** (just the numbers).
+3. **Top Customers**: Most active customers (name and net change).
+4. **Insight**: 1 critical actionable insight or alert.`
+
+            finalMessages = [
+                { role: "system", content: SYSTEM_PROMPT },
+                { role: "user", content: userPrompt }
+            ]
+        } else {
+            // For follow-up chat, include the transaction context in the system prompt or as a hidden first message
+            const contextMessage = `Context: These are the transactions for ${periodLabel}: ${JSON.stringify(transactions, null, 2)}`
+
+            finalMessages = [
+                { role: "system", content: `${SYSTEM_PROMPT}\n\n${contextMessage}` },
+                ...messages
+            ]
+        }
 
         // Call Groq API
         const response = await fetch(GROQ_API_URL, {
@@ -92,16 +115,7 @@ Strict Output Format:
             },
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
-                messages: [
-                    {
-                        role: "system",
-                        content: SYSTEM_PROMPT,
-                    },
-                    {
-                        role: "user",
-                        content: userPrompt,
-                    },
-                ],
+                messages: finalMessages,
                 temperature: 0.5,
                 max_tokens: 1024,
             }),

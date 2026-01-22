@@ -365,3 +365,22 @@ export function DeleteIcon({ className = "w-6 h-6", ...props }: SVGProps<SVGSVGE
     </svg>
   )
 }
+
+export function SparkleIcon({ className = "w-6 h-6", ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path
+        d="M7.5 5.6L8.45 8.45L11.3 9.4L8.45 10.35L7.5 13.2L6.55 10.35L3.7 9.4L6.55 8.45L7.5 5.6ZM18.5 13.6L19.1 15.4L20.9 16L19.1 16.6L18.5 18.4L17.9 16.6L16.1 16L17.9 15.4L18.5 13.6ZM16.5 2.6L17.25 4.85L19.5 5.6L17.25 6.35L16.5 8.6L15.75 6.35L13.5 5.6L15.75 4.85L16.5 2.6Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+export function CopyIcon({ className = "w-6 h-6", ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}

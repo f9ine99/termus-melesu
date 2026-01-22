@@ -3,8 +3,8 @@
 export type Language = "en" | "am"
 export type TrustStatus = "approved" | "pending" | "blocked"
 export type TransactionType = "issue" | "return"
-export type BottleCategory = "Soft Drink" | "Beer" | "Wine" | "Other"
-export type BottleType = "Soft Drink (300ML)" | "Beer" | "Wine" | "500ML" | "300ML" | "Other"
+export type BottleCategory = "Soft Drink" | "Beer" | "Wine" | "Sofi" | "Other"
+export type BottleType = "Soft Drink (300ML)" | "Beer" | "Wine" | "Sofi Malt" | "500ML" | "300ML" | "Other"
 
 export interface User {
   id: string

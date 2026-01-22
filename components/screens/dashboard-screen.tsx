@@ -3,7 +3,9 @@
 import { useMemo, useState, useEffect } from "react"
 import { getDashboardStats, getRecentTransactions } from "@/lib/data-store"
 import ActivityItem from "@/components/ui/activity-item"
-import { BottleIcon, MoneyIcon, PeopleIcon, AddIcon, ChartIcon, SendIcon, ReceiveIcon, CloudIcon } from "@/components/ui/icons"
+import { BottleIcon, MoneyIcon, PeopleIcon, AddIcon, ChartIcon, SendIcon, ReceiveIcon, CloudIcon, SparkleIcon, XIcon, CopyIcon, CheckIcon } from "@/components/ui/icons"
+import { getTransactionSummary, filterTransactionsByPeriod } from "@/lib/ai-service"
+import type { Language } from "@/lib/types"
 
 interface DashboardScreenProps {
   onNavigateToIssue: () => void
@@ -35,6 +37,7 @@ export default function DashboardScreen({
   const stats = useMemo(() => getDashboardStats(), [])
   const recentTransactions = useMemo(() => getRecentTransactions(5), [])
   const [now, setNow] = useState(new Date())
+
 
   // Update 'now' every 10 seconds to refresh relative time display
   useEffect(() => {
@@ -70,9 +73,23 @@ export default function DashboardScreen({
 
       {/* Header */}
       <header className="px-6 pt-8 pb-4 flex items-center justify-between sticky top-0 bg-background/60 backdrop-blur-xl z-20">
-        <div className="space-y-0.5">
-          <h1 className="text-2xl font-black tracking-tight text-foreground">{t("dashboard")}</h1>
-          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">{t("dashboard")}</p>
+        <div className="flex items-center gap-3">
+          <div className="space-y-0.5">
+            <h1 className="text-2xl font-black tracking-tight text-foreground">{t("dashboard")}</h1>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">{t("dashboard")}</p>
+          </div>
+          <button
+            onClick={onNavigateToReports}
+            className="p-2 rounded-xl transition-all active:scale-90 relative group hover:bg-primary/10"
+            title={t("viewReports")}
+          >
+            <SparkleIcon className="w-6 h-6 text-primary/60 group-hover:text-primary transition-colors" />
+
+            {/* Subtle Tooltip-like Badge */}
+            <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-foreground text-background text-[8px] font-black px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none uppercase tracking-widest shadow-premium">
+              {t("aiPowered")}
+            </span>
+          </button>
         </div>
         <div
           onClick={onFixSync}
@@ -201,6 +218,9 @@ export default function DashboardScreen({
         </div>
 
         {/* Recent Activity - Professional List */}
+
+
+        {/* Recent Activity - Professional List */}
         <div className="space-y-6">
           <div className="flex items-center justify-between px-1">
             <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">{t("recentActivity")}</h3>
@@ -225,6 +245,8 @@ export default function DashboardScreen({
             )}
           </div>
         </div>
+
+
       </main>
     </div >
   )

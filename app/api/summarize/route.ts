@@ -5,19 +5,23 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 // System prompt for the AI summarizer
-const SYSTEM_PROMPT = `You are "Termus Melesu AI", a professional business analyst for retail shopkeepers in Ethiopia. 
-Your goal is to provide concise, high-impact summaries of bottle return transactions.
+const SYSTEM_PROMPT = `You are "Termus Melesu AI", a highly precise business analyst for retail shopkeepers in Ethiopia. 
+Your primary directive is ACCURACY and STRATEGIC INSIGHT.
 
 Context:
 - "Issue": Bottles loaned to customers.
 - "Return": Bottles brought back.
-- "Outstanding": The debt of bottles a customer owes.
+- "Net Change": Issued minus Returned.
 
-Guidelines:
-1. Language: ALWAYS respond in the language requested (English or Amharic).
-2. Tone: Professional and direct.
-3. Formatting: Use Markdown (bolding, bullet points).
-4. Brevity: Be concise. Focus on key numbers and critical insights. Avoid long explanations.`
+Strict Guidelines:
+1. DATA INTEGRITY: Use ONLY the provided "Verified Stats" and "Enhanced Context" for reporting.
+2. NO HALLUCINATION: If information is missing, do not invent it.
+3. STRATEGIC ANALYSIS:
+   - Compare current activity with previous trends.
+   - Highlight specific customer risks (high debt + inactivity).
+4. LANGUAGE: ALWAYS respond in the language requested (English or Amharic).
+5. TONE: Professional, factual, and direct.
+6. FORMATTING: Use Markdown (bolding, bullet points).`
 
 
 
@@ -39,6 +43,8 @@ interface ChatMessage {
 
 interface SummarizeRequest {
     transactions: TransactionData[]
+    stats: any // Pre-calculated stats
+    enhancedContext?: any // Trends, Risk
     period: "today" | "week" | "month" | "custom"
     language: "en" | "am"
     messages?: ChatMessage[] // Optional messages for chat history
@@ -55,7 +61,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body: SummarizeRequest = await request.json()
-        const { transactions, period, language, messages = [] } = body
+        const { transactions, stats, enhancedContext, period, language, messages = [] } = body
 
         if (!transactions || transactions.length === 0) {
             return NextResponse.json(
@@ -82,23 +88,38 @@ export async function POST(request: NextRequest) {
         if (messages.length === 0) {
             const userPrompt = `${languageInstruction}
 
-Provide a concise summary of these ${periodLabel} transactions:
+Provide a precise and strategic summary for ${periodLabel} based on this data:
 
-${JSON.stringify(transactions, null, 2)}
+### 1. Verified Stats (Ground Truth):
+- Total Issued: ${stats.issued}
+- Total Returned: ${stats.returned}
+- Net Change: ${stats.netChange}
+- Transaction Count: ${stats.transactionCount}
+
+### 2. Trend Analysis:
+- Previous Period Stats: ${JSON.stringify(enhancedContext?.prevStats || "N/A")}
+- Growth/Decline: Compare current vs previous.
+
+### 3. Customer Risk Alerts:
+${enhancedContext?.riskAlerts?.length > 0
+                    ? enhancedContext.riskAlerts.map((c: any) => `- ${c.name}: ${c.outstanding} bottles, inactive for ${c.daysInactive} days`).join("\n")
+                    : "No high-risk customers identified."}
 
 Output Structure:
-1. **Overview**: 1 clear sentence on overall activity.
-2. **Metrics**: Issued, Returned, Net change, and **Deposited Cash** (just the numbers).
-3. **Top Customers**: Most active customers (name and net change).
-4. **Insight**: 1 critical actionable insight or alert.`
+1. **Executive Summary**: 1-2 sentences on overall performance and trends.
+2. **Key Metrics**: Use the Verified Stats.
+3. **Risk & Alerts**: Highlight specific customers who need attention.
+4. **Actionable Insight**: 1 high-impact recommendation.`
 
             finalMessages = [
                 { role: "system", content: SYSTEM_PROMPT },
                 { role: "user", content: userPrompt }
             ]
         } else {
-            // For follow-up chat, include the transaction context in the system prompt or as a hidden first message
-            const contextMessage = `Context: These are the transactions for ${periodLabel}: ${JSON.stringify(transactions, null, 2)}`
+            // For follow-up chat, include the full context
+            const contextMessage = `Verified Stats: ${JSON.stringify(stats)}
+Enhanced Context (Trends, Risk): ${JSON.stringify(enhancedContext)}
+Transaction Data: ${JSON.stringify(transactions)}`
 
             finalMessages = [
                 { role: "system", content: `${SYSTEM_PROMPT}\n\n${contextMessage}` },

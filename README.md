@@ -1,90 +1,96 @@
-# ጠርሙስ መልሱ
-> **"Return the Bottle"** — A Digital Ledger for Ethiopian Retailers.
+# ጠርሙስ መልሱ (Termus Melesu)
+> **"Return the Bottle"** — A specialized digital ledger for Ethiopian retail inventory management.
 
-[![Status](https://img.shields.io/badge/Status-In--Development-green)]()
-[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Web-blue)]()
+[![Status](https://img.shields.io/badge/Status-Production--Ready-brightgreen)]()
+[![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20Mobile%20Optimized-blue)]()
+[![Framework](https://img.shields.io/badge/Framework-Next.js%2015-black)]()
 
-## 🇪🇹 Overview
-**ጠርሙስ መልሱ** is a specialized inventory and relationship management tool designed to solve the problem of bottle loss in small shops. By differentiating between **Trusted** and **New** customers, it ensures accountability without hurting customer loyalty.
+## Overview
+**ጠርሙስ መልሱ** is a dedicated inventory and relationship management platform designed to mitigate bottle loss in small retail environments. The system streamlines the tracking of returnable glass bottles, ensuring financial accountability while preserving customer loyalty through a sophisticated trust-based profile system.
 
-## 1. Background
-In many areas of Ethiopia, beverages such as beer and soft drinks are sold in returnable glass bottles. Customers purchase the liquid, while the glass bottle remains the property of the beverage supplier and is loaned through retail shops.
+---
 
-Shops are responsible for returning empty bottles to distributors to restock products. Currently, the system relies heavily on manual tracking, trust, and memory, which causes frequent losses. Shopkeepers often forget what bottles were given, and customers may forget to return them. Over time, these misplaced bottles lead to significant financial loss for the retailer.
+## Core Features
 
-## 2. Statement of the Problem
-The current manual bottle return system has several shortcomings:
-* **Inconsistent Enforcement:** Deposit rules are applied haphazardly.
-* **Poor Record-Keeping:** No central ledger for outstanding bottles.
-* **Ambiguous Ownership:** Lack of proof regarding who holds which bottles.
-* **Lack of Accountability:** No system to flag overdue bottles or "trusted" client loopholes.
+### Transaction Management
+- **Efficient Logging:** Record bottle issuances and returns with minimal interaction.
+- **Trust-Based Logic:** 
+  - **New Customers:** Automated deposit calculation and tracking to ensure financial security.
+  - **Trusted Customers:** Credit-based tracking with digital debt profiles for established clients.
+- **Quick Returns:** Streamlined one-click return process for outstanding inventory.
 
-**Result:** Financial loss, restocking struggles, and avoidable conflicts between shopkeepers and customers.
+### AI-Powered Analytics
+- **Business Summaries:** Automated performance reporting powered by **Groq AI** (Llama 3.3).
+- **Trend Analysis:** Visual insights into bottle circulation and financial health.
 
-## 3. Objectives
-### 3.1 General Objective
-To design a simple, reliable system that reduces bottle loss and improves accountability between shopkeepers and customers through digital tracking.
+### Accessibility and Resilience
+- **Localization:** Full Amharic language support for local accessibility.
+- **Mobile-First Interface:** A modern, glassmorphic UI optimized for high-frequency retail environments.
+- **Offline-First Architecture:** Robust local data persistence with seamless background synchronization.
 
-### 3.2 Specific Objectives
-* Track bottles issued to and returned by customers in real-time.
-* Enforce consistent deposit rules (New vs. Trusted clients).
-* Provide clear visibility of outstanding bottles per customer.
-* Ensure functionality in low-connectivity environments (Offline-First).
-* Minimize financial loss and improve the restocking cycle.
+### Reporting Dashboard
+- Real-time monitoring of outstanding bottle inventory.
+- Comprehensive financial summaries (Deposits held vs. Refunds due).
+- Detailed customer transaction logs.
 
-## 4. Scope
-### ✅ Included
-* **Target:** Small retail shops using returnable bottles.
-* **Platform:** Android or Mobile Web Application.
-* **Core Logic:** Recording "Out" and "In" transactions.
-* **Client Logic:** Differentiation between "New" (Deposit required) and "Trusted" (No deposit) clients.
-* **Storage:** Local-first storage with optional cloud backup.
+---
 
-### ❌ Excluded
-* Integration with beverage company ERPs.
-* Hardware-based scanning (QR/RFID).
-* Automated online payment processing.
-* Large-scale warehouse inventory management.
+## Technical Stack
 
-## 5. Benefits
-* **For Shopkeepers:** Reduced financial loss, better stock availability, and faster daily operations.
-* **For Customers:** Fair treatment, clear responsibility, and faster deposit refunds.
-* **For the Community:** Increased glass reuse and reduced environmental waste.
+- **Framework:** Next.js 15 (App Router), React 19.
+- **Styling:** Tailwind CSS 4, Framer Motion (Animations).
+- **UI Components:** Radix UI, Lucide React, Sonner (Notifications).
+- **Backend:** Supabase (PostgreSQL, Authentication, Real-time Sync).
+- **AI Integration:** Groq AI (Llama 3.3).
+- **State Management:** React Hooks with Local Storage for offline resilience.
+- **Analytics:** Vercel Analytics.
 
-## 6. Requirements
+---
 
-### 6.1 Functional Requirements
-1. **Customer Management:** Add/manage customers and toggle their status (New vs. Trusted).
-2. **Transaction Logging:** Record bottles given out and bottles returned.
-3. **Deposit Enforcement:** Automatically calculate deposit requirements based on customer status.
-4. **Balance Tracking:** View a live list of "Outstanding Bottles" per customer.
-5. **Reporting:** View daily and weekly summaries of bottle flow.
-6. **Data Resilience:** Work offline and sync data once a connection is established.
-7. **Security:** Prevent unauthorized edits to past transaction logs.
+## Getting Started
 
-### 6.2 Non-Functional Requirements
-* **Usability:** High-contrast, simple UI for fast-paced retail environments.
-* **Performance:** Transactions must process in under 5 seconds.
-* **Reliability:** Local data must be persistent and survive app restarts.
-* **Scalability:** System should handle hundreds of customers without slowdown.
+### Prerequisites
+- Node.js 18 or higher
+- pnpm (recommended)
 
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/termus-melesu.git
+   cd termus-melesu
+   ```
 
-## 7. Business Logic & Workflow
-The system must bifurcate its logic based on the **Customer Trust Profile**:
+2. Install dependencies:
+   ```bash
+   pnpm install
+   ```
 
-### 7.1 New Customer Workflow (Deposit-Protected)
-* **Issuance:** System requires a mandatory cash deposit per bottle.
-* **Return:** Upon return of the physical bottle, the system calculates and triggers a refund of the original deposit.
-* **Financial Integrity:** Ensures the shopkeeper is never at a net loss if the bottle is not returned.
+3. Environment Configuration:
+   Create a `.env.local` file in the root directory with the following variables:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   GROQ_API_KEY=your_groq_api_key
+   ```
 
-### 7.2 Trusted Customer Workflow (Credit-Based)
-* **Issuance:** No cash deposit is required. 
-* **Mandatory Recording:** To ensure "Fair Treatment" does not lead to loss, the system **must** log:
-    * customer information like (Name, Phone, Address).
-    * Quantity and type of bottles.
-    * Date and timestamp of the transaction.
-    * Payment status of the liquid contents.
-* **Accountability:** Outstanding bottles are added to the customer's digital "debt profile" until physically returned.
+4. Development Server:
+   ```bash
+   pnpm dev
+   ```
+   Access the application at [http://localhost:3000](http://localhost:3000).
 
+---
 
+## Project Structure
+
+- `app/`: Application routes and API endpoints.
+- `components/`: Modular UI components and screen-specific logic.
+- `lib/`: Shared utilities, Supabase client, and core business logic.
+- `public/`: Static assets and media.
+- `styles/`: Global styling and Tailwind configurations.
+
+---
+
+## License
 *Bottle Return Tracking System Project - 2026*
+

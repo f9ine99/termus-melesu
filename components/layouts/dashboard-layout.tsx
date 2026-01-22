@@ -7,21 +7,23 @@ import TransactionScreen from "@/components/screens/transaction-screen"
 import ReportsScreen from "@/components/screens/reports-screen"
 import SettingsScreen from "@/components/screens/settings-screen"
 import CustomerDetailScreen from "@/components/screens/customer-detail-screen"
+import AiInsightsScreen from "@/components/screens/ai-insights-screen"
 import type { SafeUser } from "@/lib/types"
-import { ChartIcon, PeopleIcon, SettingsIcon, AddIcon, LogoutIcon, XIcon, CheckIcon, UndoIcon, AlertIcon, InfoIcon } from "@/components/ui/icons"
+import { ChartIcon, PeopleIcon, SettingsIcon, AddIcon, LogoutIcon, XIcon, CheckIcon, UndoIcon, AlertIcon, InfoIcon, GridIcon } from "@/components/ui/icons"
 import { NotificationToast } from "@/components/ui/notification-toast"
 import { PullToRefresh } from "@/components/ui/pull-to-refresh"
 import { getCustomers, getTransactions, deleteTransaction } from "@/lib/data-store"
 import { translations, type Language } from "@/lib/translations"
 import { useEffect } from "react"
 import { onSyncStatusChange, getSyncStatus, getPendingChangesCount, pushAllDataToCloud, triggerSync, getLastSyncTime, onLastSyncTimeChange, type SyncStatus } from "@/lib/sync-service"
+import type { SummaryPeriod } from "@/lib/ai-service"
 
 interface DashboardLayoutProps {
   user: SafeUser
   onLogout: () => void
 }
 
-type ScreenType = "transaction" | "dashboard" | "customers" | "customer-detail" | "reports" | "settings"
+type ScreenType = "transaction" | "dashboard" | "customers" | "customer-detail" | "reports" | "settings" | "ai-insights"
 
 interface StackEntry {
   screen: ScreenType
@@ -177,6 +179,7 @@ export default function DashboardLayout({ user, onLogout }: DashboardLayoutProps
             onNavigateToIssue={() => navigateTo("transaction", { type: "issue" })}
             onNavigateToReturn={() => navigateTo("transaction", { type: "return" })}
             onNavigateToReports={() => navigateTo("reports")}
+            onNavigateToAiInsights={() => navigateTo("ai-insights")}
             onNavigateToSettings={() => navigateTo("settings")}
             onNavigateToCustomers={() => navigateTo("customers")}
             t={t}
@@ -220,7 +223,19 @@ export default function DashboardLayout({ user, onLogout }: DashboardLayoutProps
           <ReportsScreen
             key={`reports-${dataVersion}`}
             onBack={goBack}
+            onNavigateToAiInsights={(period: SummaryPeriod) => navigateTo("ai-insights", { period })}
             onNotify={notify}
+            t={t}
+            language={language}
+          />
+        )
+      case "ai-insights":
+        return (
+          <AiInsightsScreen
+            key={`ai-insights-${dataVersion}`}
+            onBack={goBack}
+            onNotify={notify}
+            initialPeriod={currentScreen.params?.period}
             t={t}
             language={language}
           />
@@ -258,78 +273,10 @@ export default function DashboardLayout({ user, onLogout }: DashboardLayoutProps
   return (
     <div className="h-screen flex flex-col bg-background safe-area-inset overflow-hidden relative">
 
-      {/* Floating Menu Button */}
-      <button
-        onClick={() => setIsMenuOpen(true)}
-        className="fixed bottom-8 right-6 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-premium z-40 flex items-center justify-center active:scale-90 transition-transform"
-      >
-        <div className="space-y-1">
-          <div className="w-5 h-0.5 bg-current rounded-full" />
-          <div className="w-5 h-0.5 bg-current rounded-full" />
-          <div className="w-3 h-0.5 bg-current rounded-full" />
-        </div>
-      </button>
-
-      {/* Side Menu Drawer */}
-      {isMenuOpen && (
-        <div className="fixed inset-0 z-50 animate-in fade-in duration-300">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
-          <div className="absolute right-0 top-0 bottom-0 w-64 bg-card shadow-premium p-8 animate-in slide-in-from-right duration-300 flex flex-col">
-            <div className="flex items-center justify-between mb-12">
-              <h2 className="text-xl font-black">Menu</h2>
-              <button onClick={() => setIsMenuOpen(false)} className="p-2 bg-secondary rounded-xl">
-                <XIcon className="w-5 h-5" />
-              </button>
-            </div>
-
-            <nav className="flex-1 space-y-2">
-              <MenuButton
-                icon={<AddIcon className="w-5 h-5" />}
-                label="Record"
-                active={currentScreen.screen === "transaction"}
-                onClick={() => navigateTo("transaction")}
-              />
-              <MenuButton
-                icon={<ChartIcon className="w-5 h-5" />}
-                label="Dashboard"
-                active={currentScreen.screen === "dashboard"}
-                onClick={() => navigateTo("dashboard")}
-              />
-              <MenuButton
-                icon={<PeopleIcon className="w-5 h-5" />}
-                label="Customers"
-                active={currentScreen.screen === "customers"}
-                onClick={() => navigateTo("customers")}
-              />
-              <MenuButton
-                icon={<ChartIcon className="w-5 h-5" />}
-                label="Reports"
-                active={currentScreen.screen === "reports"}
-                onClick={() => navigateTo("reports")}
-              />
-              <MenuButton
-                icon={<SettingsIcon className="w-5 h-5" />}
-                label="Settings"
-                active={currentScreen.screen === "settings"}
-                onClick={() => navigateTo("settings")}
-              />
-            </nav>
-
-            <button
-              onClick={onLogout}
-              className="mt-auto flex items-center gap-3 p-4 text-destructive font-bold text-sm hover:bg-destructive/5 rounded-2xl transition-colors"
-            >
-              <LogoutIcon className="w-5 h-5" />
-              Logout
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Screen container with slide animation */}
       <div
         key={navigationStack.length}
-        className={`flex-1 overflow-hidden ${slideDirection === "left" ? "slide-in-left" : "slide-in-right"
+        className={`flex-1 overflow-hidden pb-24 ${slideDirection === "left" ? "slide-in-left" : "slide-in-right"
           }`}
       >
         {/* Main Content Area */}
@@ -342,6 +289,64 @@ export default function DashboardLayout({ user, onLogout }: DashboardLayoutProps
             {renderScreen()}
           </PullToRefresh>
         </main>
+      </div>
+
+      {/* Modern Bottom Navigation Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 px-6 pb-8 pt-4 bg-gradient-to-t from-background via-background/95 to-transparent pointer-events-none">
+        <nav className="max-w-md mx-auto bg-card/40 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-2 flex items-center justify-between shadow-[0_20px_50px_rgba(0,0,0,0.1)] pointer-events-auto relative">
+          {/* Premium Border Glow */}
+          <div className="absolute inset-0 rounded-[2.5rem] border border-primary/10 pointer-events-none" />
+
+          <NavTab
+            icon={<GridIcon className="w-5 h-5" />}
+            label={t("dashboard")}
+            active={currentScreen.screen === "dashboard"}
+            onClick={() => navigateTo("dashboard")}
+          />
+          <NavTab
+            icon={<PeopleIcon className="w-5 h-5" />}
+            label={t("customers")}
+            active={currentScreen.screen === "customers" || currentScreen.screen === "customer-detail"}
+            onClick={() => navigateTo("customers")}
+          />
+
+          {/* Central Record Button - Enhanced Design */}
+          <div className="relative -mt-12 group flex flex-col items-center gap-1.5">
+            {/* Multi-layered Glow */}
+            <div className="absolute top-0 bg-primary/30 rounded-full blur-2xl group-hover:bg-primary/40 transition-all duration-700 scale-150 w-16 h-16 opacity-50" />
+            <div className="absolute top-0 bg-primary/20 rounded-full blur-md group-hover:bg-primary/30 transition-all duration-500 scale-110 w-16 h-16" />
+
+            <button
+              onClick={() => navigateTo("transaction")}
+              className={`relative w-15 h-15 rounded-full flex items-center justify-center transition-all duration-500 shadow-[0_10px_25px_-5px_rgba(var(--primary),0.4)] active:scale-90 ${currentScreen.screen === "transaction"
+                ? "bg-foreground text-background rotate-45"
+                : "bg-primary text-primary-foreground hover:scale-110 hover:shadow-[0_15px_30px_-5px_rgba(var(--primary),0.5)]"
+                }`}
+            >
+              <AddIcon className="w-7 h-7" />
+
+              {/* Inner Shine Effect */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            </button>
+
+            <span className={`text-[9px] font-black uppercase tracking-[0.15em] transition-all duration-500 ${currentScreen.screen === "transaction" ? "text-foreground translate-y-[-2px]" : "text-muted-foreground/60"}`}>
+              {t("recordTransaction")?.split(' ')[0] || "Record"}
+            </span>
+          </div>
+
+          <NavTab
+            icon={<ChartIcon className="w-5 h-5" />}
+            label={t("reports")}
+            active={currentScreen.screen === "reports" || currentScreen.screen === "ai-insights"}
+            onClick={() => navigateTo("reports")}
+          />
+          <NavTab
+            icon={<SettingsIcon className="w-5 h-5" />}
+            label={t("settings")}
+            active={currentScreen.screen === "settings"}
+            onClick={() => navigateTo("settings")}
+          />
+        </nav>
       </div>
 
       {/* Global Notification - Modern & Professional (Moved outside animated container) */}
@@ -358,15 +363,26 @@ export default function DashboardLayout({ user, onLogout }: DashboardLayoutProps
   )
 }
 
-function MenuButton({ icon, label, onClick, active }: { icon: any, label: string, onClick: () => void, active: boolean }) {
+function NavTab({ icon, label, onClick, active }: { icon: any, label: string, onClick: () => void, active: boolean }) {
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold text-sm transition-all ${active ? "bg-primary text-primary-foreground shadow-md scale-[1.02]" : "text-muted-foreground hover:bg-secondary"
+      className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 transition-all duration-500 relative group/tab ${active ? "text-primary" : "text-muted-foreground hover:text-foreground"
         }`}
     >
-      {icon}
-      {label}
+      <div className={`transition-all duration-500 z-10 ${active ? "translate-y-[-2px] scale-110" : "group-hover/tab:translate-y-[-1px]"}`}>
+        {icon}
+      </div>
+
+      <span className={`text-[8px] font-black uppercase tracking-[0.2em] transition-all duration-500 z-10 ${active ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+        }`}>
+        {label}
+      </span>
+
+      {/* Active Dot */}
+      {active && (
+        <div className="absolute bottom-1 w-1 h-1 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary),0.8)] animate-spring-up" />
+      )}
     </button>
   )
 }

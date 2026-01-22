@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from "react"
 import { getDashboardStats, getRecentTransactions } from "@/lib/data-store"
 import ActivityItem from "@/components/ui/activity-item"
-import { BottleIcon, MoneyIcon, PeopleIcon, AddIcon, ChartIcon, SendIcon, ReceiveIcon, CloudIcon, SparkleIcon, XIcon, CopyIcon, CheckIcon } from "@/components/ui/icons"
+import { BottleIcon, MoneyIcon, PeopleIcon, AddIcon, ChartIcon, SendIcon, ReceiveIcon, CloudIcon, SparkleIcon, XIcon, CopyIcon, CheckIcon, ArrowLeftIcon } from "@/components/ui/icons"
 import { getTransactionSummary, filterTransactionsByPeriod } from "@/lib/ai-service"
 import type { Language } from "@/lib/types"
 
@@ -11,6 +11,7 @@ interface DashboardScreenProps {
   onNavigateToIssue: () => void
   onNavigateToReturn: () => void
   onNavigateToReports: () => void
+  onNavigateToAiInsights: () => void
   onNavigateToSettings: () => void
   onNavigateToCustomers: () => void
   t: (key: any, params?: any) => string
@@ -25,6 +26,7 @@ export default function DashboardScreen({
   onNavigateToIssue,
   onNavigateToReturn,
   onNavigateToReports,
+  onNavigateToAiInsights,
   onNavigateToSettings,
   onNavigateToCustomers,
   t,
@@ -67,137 +69,137 @@ export default function DashboardScreen({
   return (
     <div className="min-h-full bg-background flex flex-col relative overflow-hidden">
       {/* Background Accents */}
-      {/* Background Accents - Refined */}
-      <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] animate-pulse-subtle" />
-      <div className="absolute bottom-[10%] left-[-10%] w-[40%] h-[40%] bg-secondary/20 rounded-full blur-[120px]" />
+      {/* Background Accents - Premium & Subtle */}
+      <div className="absolute top-[-5%] right-[-10%] w-[60%] h-[40%] bg-primary/10 rounded-full blur-[120px] animate-pulse-subtle pointer-events-none" />
+      <div className="absolute bottom-[20%] left-[-20%] w-[50%] h-[50%] bg-secondary/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-[40%] right-[10%] w-[30%] h-[30%] bg-accent/10 rounded-full blur-[100px] pointer-events-none animate-float" />
 
       {/* Header */}
-      <header className="px-6 pt-8 pb-4 flex items-center justify-between sticky top-0 bg-background/60 backdrop-blur-xl z-20">
-        <div className="flex items-center gap-3">
-          <div className="space-y-0.5">
-            <h1 className="text-2xl font-black tracking-tight text-foreground">{t("dashboard")}</h1>
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">{t("dashboard")}</p>
+      <header className="px-6 pt-10 pb-4 flex items-center justify-between sticky top-0 bg-background/60 backdrop-blur-xl z-20">
+        <div className="flex flex-col">
+          <h1 className="text-2xl font-black tracking-tight text-foreground leading-none">{t("dashboard")}</h1>
+          <div className="flex items-center gap-1.5 mt-1">
+            <div className={`w-1.5 h-1.5 rounded-full ${syncStatus === 'online' ? 'bg-green-500' : 'bg-amber-500 animate-pulse'}`} />
+            <div className="flex flex-col">
+              {syncStatus === 'online' ? (
+                lastSyncTime && (
+                  <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none">
+                    Last synced {formatRelativeTime(lastSyncTime)}
+                  </p>
+                )
+              ) : (
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none">
+                  Syncing Data
+                </p>
+              )}
+            </div>
           </div>
-          <button
-            onClick={onNavigateToReports}
-            className="p-2 rounded-xl transition-all active:scale-90 relative group hover:bg-primary/10"
-            title={t("viewReports")}
-          >
-            <SparkleIcon className="w-6 h-6 text-primary/60 group-hover:text-primary transition-colors" />
-
-            {/* Subtle Tooltip-like Badge */}
-            <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-foreground text-background text-[8px] font-black px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none uppercase tracking-widest shadow-premium">
-              {t("aiPowered")}
-            </span>
-          </button>
         </div>
-        <div
+
+        <button
           onClick={onFixSync}
-          className={`group flex items-center gap-3 px-5 py-2.5 rounded-[1.5rem] border transition-all duration-700 cursor-pointer active:scale-95 relative overflow-hidden ${syncStatus === 'online' ? 'bg-green-500/5 border-green-500/10 text-green-600 hover:bg-green-500/10 shadow-sm hover:shadow-md' :
-            syncStatus === 'syncing' ? 'bg-primary/5 border-primary/10 text-primary hover:bg-primary/10' :
-              syncStatus === 'error' ? 'bg-red-500/5 border-red-500/10 text-red-600 hover:bg-red-500/10' :
-                'bg-slate-500/5 border-slate-500/10 text-slate-600 hover:bg-slate-500/10'
+          className={`group flex items-center gap-2.5 px-4 py-2 rounded-2xl border transition-all duration-500 active:scale-95 relative overflow-hidden ${syncStatus === 'online'
+            ? 'bg-secondary/50 border-border/50 text-foreground hover:bg-secondary/80'
+            : 'bg-primary/10 border-primary/20 text-primary'
             }`}
         >
-          {/* Glassmorphism Background */}
-          <div className="absolute inset-0 backdrop-blur-xl z-0" />
-
-          {/* Syncing Shimmer Effect */}
-          {syncStatus === 'syncing' && (
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent -translate-x-full animate-shimmer z-1" />
-          )}
-
-          <div className="relative z-10 flex items-center gap-3">
+          <div className="relative z-10 flex items-center gap-2">
             <div className="relative">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-500 shadow-inner ${syncStatus === 'online' ? 'bg-green-500/10' :
-                syncStatus === 'syncing' ? 'bg-primary/10' :
-                  syncStatus === 'error' ? 'bg-red-500/10' :
-                    'bg-slate-500/10'
-                }`}>
-                <CloudIcon className={`w-5 h-5 ${syncStatus === 'syncing' ? 'animate-bounce' : 'group-hover:scale-110 transition-transform'}`} />
-              </div>
-              <div className={`absolute -right-0.5 -top-0.5 w-3 h-3 rounded-full border-2 border-background z-20 shadow-sm ${syncStatus === 'online' ? 'bg-green-500' :
-                syncStatus === 'syncing' ? 'bg-primary animate-pulse' :
-                  syncStatus === 'error' ? 'bg-red-500' :
-                    'bg-slate-400'
-                }`} />
+              <CloudIcon className={`w-5 h-5 ${syncStatus === 'syncing' ? 'animate-pulse' : ''}`} />
+              {pendingCount > 0 && (
+                <div className="absolute -right-1 -top-1 w-2 h-2 bg-primary rounded-full border border-background" />
+              )}
             </div>
-
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] leading-none opacity-90">
-                {pendingCount > 0 ? 'Sync Required' :
-                  syncStatus === 'online' ? 'Cloud Vault' :
-                    syncStatus === 'syncing' ? 'Syncing...' :
-                      syncStatus === 'error' ? 'Sync Alert' :
-                        'Offline'}
+            <div className="flex flex-col items-start">
+              <span className="text-[9px] font-black uppercase tracking-wider leading-none">
+                {syncStatus === 'online' ? 'Cloud' : 'Sync'}
               </span>
-              <span className="text-[8px] font-bold opacity-60 mt-1 uppercase tracking-widest flex items-center gap-1">
-                {pendingCount > 0 ? (
-                  <span className="flex items-center gap-1 animate-pulse">
-                    <span className="w-1 h-1 rounded-full bg-current" />
-                    {pendingCount} {pendingCount === 1 ? 'change' : 'changes'} pending
-                  </span>
-                ) : (
-                  <>
-                    <span className="w-1 h-1 rounded-full bg-current opacity-40" />
-                    {syncStatus === 'online' ? `Synced ${formatRelativeTime(lastSyncTime)}` :
-                      syncStatus === 'syncing' ? 'Processing...' :
-                        syncStatus === 'error' ? 'Check Connection' :
-                          'Local Only'}
-                  </>
-                )}
-              </span>
+              {pendingCount > 0 && (
+                <span className="text-[7px] font-bold opacity-70 leading-none mt-0.5">{pendingCount} pending</span>
+              )}
             </div>
           </div>
-        </div>
+        </button>
       </header>
 
-      <main className="flex-1 px-6 pb-32 overflow-y-auto no-scrollbar space-y-8 relative z-10">
-        {/* Main Stats Card - More Sophisticated */}
-        {/* Main Stats Card - Premium Gradient */}
-        <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-[2.5rem] p-8 shadow-premium relative overflow-hidden group border border-white/10">
-          <div className="relative z-10 space-y-8">
-            <div className="flex justify-between items-start">
-              <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">{t("totalOutstanding")}</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-6xl font-black tracking-tighter">{stats.totalBottlesOutstanding}</span>
-                  <span className="text-xs font-black uppercase tracking-widest opacity-60">{t("units")}</span>
+      <main className="flex-1 px-6 pt-6 pb-32 overflow-y-auto no-scrollbar space-y-8 relative z-10">
+        {/* Main Stats Card - Modern Glassy Design */}
+        <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-8 shadow-premium border border-white/20 group">
+          {/* Background Patterns */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32 transition-transform duration-1000 group-hover:scale-110" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-3xl -ml-24 -mb-24" />
+
+          <div className="relative z-10">
+            <div className="flex justify-between items-start mb-10">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-white/60" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/70">{t("totalOutstanding")}</p>
+                </div>
+                <div className="flex items-baseline gap-3">
+                  <span className="text-6xl font-black tracking-tighter text-white drop-shadow-sm">{stats.totalBottlesOutstanding}</span>
+                  <span className="text-sm font-bold uppercase tracking-widest text-white/60">{t("units")}</span>
                 </div>
               </div>
-              <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md">
-                <BottleIcon className="w-6 h-6" />
+              <div className="w-14 h-14 bg-white/15 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner group-hover:rotate-6 transition-transform duration-500">
+                <BottleIcon className="w-7 h-7 text-white" />
               </div>
             </div>
 
-            <div className="flex items-center gap-4 pt-8 border-t border-white/10">
-              <div className="flex-1 space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-50">{t("totalDeposits")}</p>
-                <p className="text-2xl font-black tracking-tight">ETB {stats.totalDepositsHeld.toLocaleString()}</p>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={onNavigateToReturn}
-                  className="w-14 h-14 bg-white/10 text-white rounded-[1.5rem] flex items-center justify-center backdrop-blur-md border border-white/10 active:scale-90 transition-all hover:bg-white/20"
-                  title={t("returnBottles")}
-                >
-                  <ReceiveIcon className="w-7 h-7" />
-                </button>
-                <button
-                  onClick={onNavigateToIssue}
-                  className="w-14 h-14 bg-white text-primary rounded-[1.5rem] flex items-center justify-center shadow-xl active:scale-90 transition-all hover:rotate-90"
-                  title={t("issueBottles")}
-                >
-                  <SendIcon className="w-7 h-7" />
-                </button>
+            <div className="grid grid-cols-1 gap-6 pt-8 border-t border-white/10">
+              <div className="flex flex-col gap-5">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">{t("totalDeposits")}</p>
+                  <p className="text-2xl font-black tracking-tight text-white">ETB {stats.totalDepositsHeld.toLocaleString()}</p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={onNavigateToReturn}
+                    className="flex-1 flex items-center justify-center gap-2 py-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl border border-white/10 backdrop-blur-md transition-all active:scale-95 group/btn"
+                  >
+                    <ReceiveIcon className="w-5 h-5 group-hover/btn:-translate-y-0.5 transition-transform" />
+                    <span className="text-[10px] font-black uppercase tracking-wider">{t("return")}</span>
+                  </button>
+                  <button
+                    onClick={onNavigateToIssue}
+                    className="flex-1 flex items-center justify-center gap-2 py-4 bg-white text-primary rounded-2xl shadow-lg shadow-black/10 transition-all active:scale-95 hover:shadow-xl group/btn"
+                  >
+                    <SendIcon className="w-5 h-5 group-hover/btn:translate-x-0.5 transition-transform" />
+                    <span className="text-[10px] font-black uppercase tracking-wider">{t("issue")}</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-
-          {/* Decorative background elements */}
-          <div className="absolute -right-12 -top-12 w-48 h-48 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-colors" />
-          <div className="absolute -left-12 -bottom-12 w-48 h-48 bg-black/10 rounded-full blur-3xl" />
         </div>
+
+        {/* AI Insights Banner */}
+        {/* AI Insights Banner - Professional & Sleek */}
+        <button
+          onClick={onNavigateToAiInsights}
+          className="w-full group relative overflow-hidden rounded-[2rem] bg-card/30 border border-white/10 transition-all duration-500 hover:bg-card/50 active:scale-[0.99]"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-pink-500/5 opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-shimmer" />
+
+          <div className="relative flex items-center justify-between p-5">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white animate-float">
+                <SparkleIcon className="h-6 w-6 transition-transform duration-500 group-hover:rotate-12" />
+              </div>
+              <div className="flex flex-col items-start gap-1">
+                <h3 className="text-sm font-black tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">AI Insights</h3>
+                <p className="text-[11px] font-bold uppercase tracking-[0.05em] text-muted-foreground/90">
+                  Intelligent Analysis
+                </p>
+              </div>
+            </div>
+
+            <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-muted-foreground transition-all duration-300 group-hover:border-primary/20 group-hover:bg-primary/10 group-hover:text-primary">
+              <ArrowLeftIcon className="h-4 w-4 rotate-180" />
+            </div>
+          </div>
+        </button>
 
         {/* Quick Actions Grid - Refined */}
         <div className="grid grid-cols-2 gap-4">
@@ -223,23 +225,33 @@ export default function DashboardScreen({
         {/* Recent Activity - Professional List */}
         <div className="space-y-6">
           <div className="flex items-center justify-between px-1">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">{t("recentActivity")}</h3>
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-4 bg-primary rounded-full" />
+              <h3 className="text-[11px] font-black uppercase tracking-[0.25em] text-foreground/80">{t("recentActivity")}</h3>
+            </div>
             <button
               onClick={onNavigateToReports}
-              className="text-[9px] font-black text-primary uppercase tracking-widest bg-primary/5 px-3 py-1 rounded-full hover:bg-primary/10 transition-colors"
+              className="group flex items-center gap-1.5 text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 px-4 py-2 rounded-2xl hover:bg-primary/10 transition-all active:scale-95"
             >
               {t("fullHistory")}
+              <ArrowLeftIcon className="w-3 h-3 rotate-180 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
-          <div className="space-y-3">
+
+          <div className="bg-card/30 backdrop-blur-md border border-border/50 rounded-[2.5rem] overflow-hidden shadow-soft">
             {recentTransactions.length > 0 ? (
-              recentTransactions.map((txn) => (
-                <div key={txn.id} className="bg-card/50 backdrop-blur-sm border border-border rounded-3xl p-4 shadow-soft hover:border-primary/20 transition-colors">
-                  <ActivityItem transaction={txn} t={t} />
-                </div>
-              ))
+              <div className="divide-y divide-border/30">
+                {recentTransactions.map((txn) => (
+                  <div key={txn.id} className="p-4 hover:bg-primary/5 transition-colors cursor-pointer">
+                    <ActivityItem transaction={txn} t={t} />
+                  </div>
+                ))}
+              </div>
             ) : (
-              <div className="py-16 text-center bg-secondary/30 rounded-[2.5rem] border border-dashed border-border">
+              <div className="py-20 text-center">
+                <div className="w-16 h-16 bg-secondary/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-dashed border-border">
+                  <ChartIcon className="w-6 h-6 text-muted-foreground/40" />
+                </div>
                 <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">{t("noActivity")}</p>
               </div>
             )}
@@ -256,14 +268,23 @@ function QuickActionCard({ icon, label, value, onClick, color }: { icon: any, la
   return (
     <button
       onClick={onClick}
-      className={`bg-card/50 backdrop-blur-sm border border-border/50 rounded-[2rem] p-6 text-left shadow-soft active:scale-[0.98] transition-all hover:border-primary/20 hover:bg-card/80 group relative overflow-hidden`}
+      className="group relative flex flex-col items-start p-6 rounded-[2rem] bg-card/40 backdrop-blur-md border border-border/50 shadow-soft transition-all duration-500 hover:bg-card/60 hover:border-primary/20 active:scale-[0.98] overflow-hidden"
     >
-      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 ${color} border`}>
+      <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -mr-12 -mt-12 transition-transform duration-700 group-hover:scale-150" />
+
+      <div className={`relative z-10 w-12 h-12 rounded-2xl flex items-center justify-center mb-5 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ${color} border border-current/10 shadow-sm`}>
         {icon}
       </div>
-      <div className="space-y-0.5">
-        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em]">{label}</p>
-        <p className="text-xl font-black tracking-tight">{value}</p>
+
+      <div className="relative z-10 space-y-1">
+        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] leading-none">{label}</p>
+        <p className="text-xl font-black tracking-tight text-foreground">{value}</p>
+      </div>
+
+      <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+          <ArrowLeftIcon className="w-3 h-3 text-primary rotate-180" />
+        </div>
       </div>
     </button>
   )

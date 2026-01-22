@@ -1,5 +1,6 @@
 // AI Service for transaction summarization
-import type { Transaction, Language } from "./types"
+import type { Transaction, Language, Customer } from "./types"
+import { getCustomers, getTransactions } from "./data-store"
 
 export type SummaryPeriod = "today" | "week" | "month"
 
@@ -36,6 +37,62 @@ export function filterTransactionsByPeriod(
 }
 
 /**
+ * Get enhanced context for AI (Trends, Risk, Inventory)
+ */
+export function getEnhancedContext(transactions: Transaction[], period: SummaryPeriod) {
+    const allTransactions = getTransactions()
+    const now = new Date()
+
+    // 1. Trend Analysis (Compare with previous period)
+    let prevStartDate: Date
+    let prevEndDate: Date
+
+    if (period === "today") {
+        prevStartDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+        prevEndDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    } else if (period === "week") {
+        prevStartDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
+        prevEndDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    } else { // month
+        prevStartDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+        prevEndDate = new Date(now.getFullYear(), now.getMonth(), 1)
+    }
+
+    const prevTransactions = allTransactions.filter((t: Transaction) => {
+        const d = new Date(t.timestamp)
+        return d >= prevStartDate && d < prevEndDate
+    })
+
+    const currentStats = getQuickStats(transactions)
+    const prevStats = getQuickStats(prevTransactions)
+
+    // 2. Customer Risk Alerts (High outstanding + Inactivity)
+    const customers = getCustomers()
+    const riskAlerts = customers
+        .filter((c: Customer) => c.bottlesOutstanding > 10) // Threshold for risk
+        .map((c: Customer) => {
+            const lastTxnDate = c.lastTransaction ? new Date(c.lastTransaction) : new Date(0)
+            const daysInactive = Math.floor((now.getTime() - lastTxnDate.getTime()) / (1000 * 60 * 60 * 24))
+            return {
+                name: c.name,
+                outstanding: c.bottlesOutstanding,
+                daysInactive,
+                trustStatus: c.trustStatus
+            }
+        })
+        .filter((c: any) => c.daysInactive > 7) // Inactive for more than a week
+        .sort((a: any, b: any) => b.outstanding - a.outstanding)
+        .slice(0, 5)
+
+    return {
+        currentStats,
+        prevStats,
+        riskAlerts,
+        period
+    }
+}
+
+/**
  * Get AI-powered summary of transactions
  */
 export async function getTransactionSummary(
@@ -59,6 +116,9 @@ export async function getTransactionSummary(
                 : t.timestamp.toISOString(),
         }))
 
+        // Get Enhanced Context (Trends, Risk, Inventory)
+        const enhancedContext = getEnhancedContext(transactions, period)
+
         const response = await fetch("/api/summarize", {
             method: "POST",
             headers: {
@@ -66,6 +126,8 @@ export async function getTransactionSummary(
             },
             body: JSON.stringify({
                 transactions: transactionData,
+                stats: enhancedContext.currentStats, // Keep for backward compatibility
+                enhancedContext,
                 period,
                 language,
                 messages,

@@ -378,6 +378,22 @@
     }
   }
 
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-8px) scale(1.05);
+    }
+  }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -425,5 +441,21 @@
 
   .slim-scrollbar::-webkit-scrollbar-thumb:hover {
     background: var(--color-muted-foreground);
+  }
+
+  .animate-spring-up {
+    animation: spring-up 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+
+  @keyframes spring-up {
+    0% {
+      transform: translateY(10px);
+      opacity: 0;
+    }
+
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
 }

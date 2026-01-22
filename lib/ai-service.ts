@@ -41,7 +41,8 @@ export function filterTransactionsByPeriod(
 export async function getTransactionSummary(
     transactions: Transaction[],
     period: SummaryPeriod,
-    language: Language = "en"
+    language: Language = "en",
+    messages: any[] = []
 ): Promise<SummarizeResponse> {
     try {
         // Prepare transaction data for API
@@ -67,6 +68,7 @@ export async function getTransactionSummary(
                 transactions: transactionData,
                 period,
                 language,
+                messages,
             }),
         })
 

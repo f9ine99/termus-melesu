@@ -199,7 +199,18 @@ export function ReceiveIcon({ className = "w-6 h-6", ...props }: SVGProps<SVGSVG
 export function AddIcon({ className = "w-6 h-6", ...props }: SVGProps<SVGSVGElement>) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+export function GridIcon({ className = "w-6 h-6", ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <rect x="3" y="3" width="7" height="7" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="2" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   )
 }
@@ -346,7 +357,7 @@ export function CloudIcon({ className = "w-6 h-6", ...props }: SVGProps<SVGSVGEl
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
       <path
-        d="M17.5 19C20.5376 19 23 16.5376 23 13.5C23 10.701 20.916 8.39 18.186 8.054C17.616 4.604 14.61 2 11 2C7.39 2 4.384 4.604 3.814 8.054C1.084 8.39 0 10.701 0 13.5C0 16.5376 2.46243 19 5.5 19H17.5Z"
+        d="M17.5 18c2.485 0 4.5-2.015 4.5-4.5 0-2.29-1.705-4.18-3.939-4.456C17.504 5.767 15.041 3.5 12 3.5c-3.041 0-5.504 2.267-6.061 5.544C3.705 9.32 2 11.21 2 13.5 2 15.985 4.015 18 6.5 18h11z"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
@@ -384,3 +395,12 @@ export function CopyIcon({ className = "w-6 h-6", ...props }: SVGProps<SVGSVGEle
     </svg>
   )
 }
+export function RefreshIcon({ className = "w-6 h-6", ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path d="M23 4V10H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M20.49 15C19.44 18.14 16.48 20.5 13 20.5C8.86 20.5 5.5 17.14 5.5 13C5.5 8.86 8.86 5.5 13 5.5C15.44 5.5 17.61 6.67 19 8.5L23 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+

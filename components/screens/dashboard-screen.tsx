@@ -56,7 +56,7 @@ export default function DashboardScreen({
   }, [lastSyncTime])
 
   const formatRelativeTime = (isoString: string | null) => {
-    if (!isoString) return t("neverSynced") || "Never Synced"
+    if (!isoString) return t("neverSynced")
     const date = new Date(isoString)
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
 
@@ -79,17 +79,19 @@ export default function DashboardScreen({
         <div className="flex flex-col">
           <h1 className="text-2xl font-black tracking-tight text-foreground leading-none">{t("dashboard")}</h1>
           <div className="flex items-center gap-1.5 mt-1">
-            <div className={`w-1.5 h-1.5 rounded-full ${syncStatus === 'online' ? 'bg-green-500' : 'bg-amber-500 animate-pulse'}`} />
-            <div className="flex flex-col">
+            <div className={`w-1.5 h-1.5 rounded-full ${syncStatus === 'online' ? 'bg-green-500' : syncStatus === 'offline' ? 'bg-red-500' : 'bg-amber-500 animate-pulse'}`} />
+            <div className="flex flex-col min-w-[100px]">
               {syncStatus === 'online' ? (
-                lastSyncTime && (
-                  <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none">
-                    Last synced {formatRelativeTime(lastSyncTime)}
-                  </p>
-                )
+                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none">
+                  {lastSyncTime ? `${t("lastSynced")} ${formatRelativeTime(lastSyncTime)}` : t("neverSynced")}
+                </p>
+              ) : syncStatus === 'offline' ? (
+                <p className="text-[10px] font-bold text-red-500/80 uppercase tracking-widest leading-none">
+                  {t("offline")}
+                </p>
               ) : (
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none">
-                  Syncing Data
+                  {t("syncing")}
                 </p>
               )}
             </div>
@@ -112,7 +114,7 @@ export default function DashboardScreen({
             </div>
             <div className="flex flex-col items-start">
               <span className="text-[9px] font-black uppercase tracking-wider leading-none">
-                {syncStatus === 'online' ? 'Cloud' : 'Sync'}
+                {syncStatus === 'online' ? t("cloud") : syncStatus === 'offline' ? t("offline") : t("sync")}
               </span>
               {pendingCount > 0 && (
                 <span className="text-[7px] font-bold opacity-70 leading-none mt-0.5">{pendingCount} pending</span>

@@ -1,6 +1,6 @@
 // AI Service for transaction summarization
 import type { Transaction, Language, Customer } from "./types"
-import { getCustomers, getTransactions } from "./data-store"
+import { getCustomers, getTransactions, getDashboardStats } from "./data-store"
 
 export type SummaryPeriod = "today" | "week" | "month"
 
@@ -126,7 +126,10 @@ export async function getTransactionSummary(
             },
             body: JSON.stringify({
                 transactions: transactionData,
-                stats: enhancedContext.currentStats, // Keep for backward compatibility
+                stats: {
+                    ...enhancedContext.currentStats,
+                    totalDepositsHeld: getDashboardStats().totalDepositsHeld
+                },
                 enhancedContext,
                 period,
                 language,
@@ -164,6 +167,16 @@ export function getQuickStats(transactions: Transaction[]) {
 
     const netChange = issued - returned
 
+    const depositIssued = transactions
+        .filter((t) => t.type === "issue")
+        .reduce((sum, t) => sum + t.depositAmount, 0)
+
+    const depositReturned = transactions
+        .filter((t) => t.type === "return")
+        .reduce((sum, t) => sum + t.depositAmount, 0)
+
+    const netDepositChange = depositIssued - depositReturned
+
     // Group by customer
     const customerStats: Record<string, { name: string; issued: number; returned: number }> = {}
 
@@ -189,6 +202,9 @@ export function getQuickStats(transactions: Transaction[]) {
         issued,
         returned,
         netChange,
+        depositIssued,
+        depositReturned,
+        netDepositChange,
         topCustomers,
         transactionCount: transactions.length,
     }

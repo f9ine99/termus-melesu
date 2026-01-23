@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from "react"
 import { getDashboardStats, getRecentTransactions } from "@/lib/data-store"
 import ActivityItem from "@/components/ui/activity-item"
-import { BottleIcon, MoneyIcon, PeopleIcon, AddIcon, ChartIcon, SendIcon, ReceiveIcon, CloudIcon, SparkleIcon, XIcon, CopyIcon, CheckIcon, ArrowLeftIcon } from "@/components/ui/icons"
+import { BottleIcon, MoneyIcon, PeopleIcon, AddIcon, ChartIcon, SendIcon, ReceiveIcon, CloudIcon, SparkleIcon, XIcon, CopyIcon, CheckIcon, ArrowLeftIcon, AlertIcon } from "@/components/ui/icons"
 import { getTransactionSummary, filterTransactionsByPeriod } from "@/lib/ai-service"
 import type { Language } from "@/lib/types"
 
@@ -176,28 +176,24 @@ export default function DashboardScreen({
         </div>
 
         {/* AI Insights Banner */}
-        {/* AI Insights Banner - Professional & Sleek */}
+        {/* AI Insights Banner - Professional & Premium */}
         <button
           onClick={onNavigateToAiInsights}
-          className="w-full group relative overflow-hidden rounded-[2rem] bg-card/30 border border-white/10 transition-all duration-500 hover:bg-card/50 active:scale-[0.99]"
+          className="w-full group relative overflow-hidden rounded-[2rem] bg-card border border-primary/20 p-1 transition-all duration-500 hover:border-primary/40 active:scale-[0.99] shadow-soft"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-pink-500/5 opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-shimmer" />
-
-          <div className="relative flex items-center justify-between p-5">
+          <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-primary/5 to-purple-500/5 rounded-[1.8rem] group-hover:from-primary/10 group-hover:to-purple-500/10 transition-colors">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white animate-float">
-                <SparkleIcon className="h-6 w-6 transition-transform duration-500 group-hover:rotate-12" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform duration-500">
+                <SparkleIcon className="h-6 w-6" />
               </div>
-              <div className="flex flex-col items-start gap-1">
-                <h3 className="text-sm font-black tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">AI Insights</h3>
-                <p className="text-[11px] font-bold uppercase tracking-[0.05em] text-muted-foreground/90">
-                  Intelligent Analysis
+              <div className="flex flex-col items-start">
+                <h3 className="text-sm font-black tracking-tight text-foreground">AI Insights</h3>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  {t("intelligentAnalysis") || "Intelligent Analysis"}
                 </p>
               </div>
             </div>
-
-            <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-muted-foreground transition-all duration-300 group-hover:border-primary/20 group-hover:bg-primary/10 group-hover:text-primary">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-muted-foreground group-hover:bg-primary group-hover:text-white transition-all">
               <ArrowLeftIcon className="h-4 w-4 rotate-180" />
             </div>
           </div>

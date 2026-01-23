@@ -1,4 +1,4 @@
-# ጠርሙስ መልሱ (Termus Melesu)
+# Retra
 > **"Return the Bottle"** — A specialized digital ledger for Ethiopian retail inventory management.
 
 [![Status](https://img.shields.io/badge/Status-Production--Ready-brightgreen)]()
@@ -6,32 +6,35 @@
 [![Framework](https://img.shields.io/badge/Framework-Next.js%2015-black)]()
 
 ## Overview
-**ጠርሙስ መልሱ** is a dedicated inventory and relationship management platform designed to mitigate bottle loss in small retail environments. The system streamlines the tracking of returnable glass bottles, ensuring financial accountability while preserving customer loyalty through a sophisticated trust-based profile system.
+**Retra** (formerly Termus Melesu) is a dedicated inventory and relationship management platform designed to mitigate bottle loss in small retail environments. The system streamlines the tracking of returnable glass bottles, ensuring financial accountability while preserving customer loyalty through a sophisticated trust-based profile system.
 
 ---
 
 ## Core Features
 
-### Transaction Management
-- **Efficient Logging:** Record bottle issuances and returns with minimal interaction.
-- **Trust-Based Logic:** 
-  - **New Customers:** Automated deposit calculation and tracking to ensure financial security.
-  - **Trusted Customers:** Credit-based tracking with digital debt profiles for established clients.
-- **Quick Returns:** Streamlined one-click return process for outstanding inventory.
+### 📱 Progressive Web App (PWA)
+- **Installable:** Functions as a native app on iOS and Android devices.
+- **Offline-Ready:** Continue working seamlessly without an internet connection; data syncs automatically when online.
+- **Home Screen Access:** Quick access with a custom icon and splash screen.
 
-### AI-Powered Analytics
+### 🎨 Modern User Experience
+- **Glassmorphism UI:** A premium, translucent design system that provides depth and context.
+- **Dynamic Notifications:** "Dynamic Island" style alerts that float elegantly over content.
+- **Fluid Animations:** Smooth transitions and spring-based interactions for a natural feel.
+
+### ⚡ Performance & Scale
+- **Smart Virtualization:** Handles thousands of transactions effortlessly by rendering only what's visible.
+- **On-Demand Loading:** "Load More" patterns keep the interface clean and snappy.
+- **Full Data Export:** One-click CSV export for comprehensive offline analysis.
+
+### 📊 AI-Powered Analytics
 - **Business Summaries:** Automated performance reporting powered by **Groq AI** (Llama 3.3).
 - **Trend Analysis:** Visual insights into bottle circulation and financial health.
+- **All-Time Tracking:** Monitor lifetime "Total Borrowed" and "Total Returned" stats alongside daily metrics.
 
-### Accessibility and Resilience
-- **Localization:** Full Amharic language support for local accessibility.
-- **Mobile-First Interface:** A modern, glassmorphic UI optimized for high-frequency retail environments.
-- **Offline-First Architecture:** Robust local data persistence with seamless background synchronization.
-
-### Reporting Dashboard
-- Real-time monitoring of outstanding bottle inventory.
-- Comprehensive financial summaries (Deposits held vs. Refunds due).
-- Detailed customer transaction logs.
+### 🛡️ Trust & Security
+- **Trust-Based Logic:** Automated deposit tracking for new customers vs. credit profiles for trusted partners.
+- **Secure Deletion:** PIN-protected transaction removal to prevent unauthorized data tampering.
 
 ---
 

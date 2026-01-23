@@ -5,23 +5,25 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 // System prompt for the AI summarizer
-const SYSTEM_PROMPT = `You are "Termus Melesu AI", a highly precise business analyst for retail shopkeepers in Ethiopia. 
-Your primary directive is ACCURACY and STRATEGIC INSIGHT.
+const SYSTEM_PROMPT = `You are "Termus Melesu AI", a highly precise Strategic Business Advisor for retail shopkeepers in Ethiopia. 
+Your primary directive is to provide EXECUTIVE-LEVEL insights that validate business programs and highlight strategic risks.
 
-Context:
-- "Issue": Bottles loaned to customers.
-- "Return": Bottles brought back.
-- "Net Change": Issued minus Returned.
+Context & Terminology:
+- "Borrowed Bottles": Inventory loaned to customers (previously "Issue").
+- "Returned Bottles": Inventory brought back by customers (previously "Return").
+- "Inventory Balance Change": The net difference between borrowed and returned items (previously "Net Change").
+- "Bottle Deposit": Cash held as security for borrowed bottles (previously "Deposit Amount").
 
 Strict Guidelines:
 1. DATA INTEGRITY: Use ONLY the provided "Verified Stats" and "Enhanced Context" for reporting.
 2. NO HALLUCINATION: If information is missing, do not invent it.
 3. STRATEGIC ANALYSIS:
-   - Compare current activity with previous trends.
-   - Highlight specific customer risks (high debt + inactivity).
+   - Executive Summary: Focus on WHY the data matters. Frame results as program validation (e.g., "validating initial customer adoption", "cash-control mechanisms").
+   - Key Metrics: Use professional labels (Gross vs Net). "Net Inventory Exposure" signals risk awareness.
+   - Risk & Alerts: Even if no risks are found, provide a mature assessment (e.g., "All outstanding bottles remain within acceptable return windows").
 4. LANGUAGE: ALWAYS respond in the language requested (English or Amharic).
-5. TONE: Professional, factual, and direct.
-6. FORMATTING: Use Markdown (bolding, bullet points).`
+5. TONE: Professional, executive, and direct. Avoid casual or purely operational language.
+6. FORMATTING: Use Markdown (bolding, bullet points). DO NOT use tables in the "Key Metrics" section; use bullet points instead.`
 
 
 
@@ -91,10 +93,12 @@ export async function POST(request: NextRequest) {
 Provide a precise and strategic summary for ${periodLabel} based on this data:
 
 ### 1. Verified Stats (Ground Truth):
-- Total Issued: ${stats.issued}
-- Total Returned: ${stats.returned}
-- Net Change: ${stats.netChange}
-- Transaction Count: ${stats.transactionCount}
+- Total Borrowed Bottles: ${stats.issued}
+- Total Returned Bottles: ${stats.returned}
+- Inventory Balance Change: ${stats.netChange}
+- Bottle Deposits Collected (Period): ${stats.netDepositChange}
+- Total Bottle Deposits Held (Current): ${stats.totalDepositsHeld}
+- Total Transaction Count: ${stats.transactionCount}
 
 ### 2. Trend Analysis:
 - Previous Period Stats: ${JSON.stringify(enhancedContext?.prevStats || "N/A")}
@@ -106,10 +110,16 @@ ${enhancedContext?.riskAlerts?.length > 0
                     : "No high-risk customers identified."}
 
 Output Structure:
-1. **Executive Summary**: 1-2 sentences on overall performance and trends.
-2. **Key Metrics**: Use the Verified Stats.
-3. **Risk & Alerts**: Highlight specific customers who need attention.
-4. **Actionable Insight**: 1 high-impact recommendation.`
+1. **Executive Summary**: 2-3 sentences focusing on strategic performance, program validation, and trends.
+2. **Key Metrics (${periodLabel} Performance)**: 
+   - Gross Bottles Issued: ${stats.issued}
+   - Bottles Returned: ${stats.returned}
+   - Net Inventory Exposure: ${stats.netChange > 0 ? `+${stats.netChange}` : stats.netChange} bottles
+   - Bottle Deposits Collected (This Period): ${stats.netDepositChange} ETB
+   - Bottle Deposits Held (Cumulative): ${stats.totalDepositsHeld} ETB
+   - Total Customer Transactions: ${stats.transactionCount}
+3. **Risk & Alerts**: Detailed assessment of customer risks or reassurance of program stability.
+4. **Actionable Insight**: 1 high-impact strategic recommendation.`
 
             finalMessages = [
                 { role: "system", content: SYSTEM_PROMPT },
@@ -135,10 +145,12 @@ Transaction Data: ${JSON.stringify(transactions)}`
                 "Authorization": `Bearer ${GROQ_API_KEY}`,
             },
             body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
+                model: "openai/gpt-oss-120b",
                 messages: finalMessages,
-                temperature: 0.5,
-                max_tokens: 1024,
+                temperature: 1,
+                max_completion_tokens: 8192,
+                top_p: 1,
+                reasoning_effort: "medium",
             }),
         })
 

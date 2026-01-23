@@ -32,3 +32,18 @@ ts-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Supabase
+supabase/config.toml
+supabase/.temp/

@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertIcon, CheckIcon, InfoIcon, XIcon } from "@/components/ui/icons"
+import { AlertIcon, CheckIcon, InfoIcon, XIcon, UndoIcon } from "@/components/ui/icons"
 
 export type NotificationType = 'success' | 'error' | 'info'
 
@@ -19,64 +19,72 @@ export function NotificationToast({ message, type, onClose, onUndo }: Notificati
     const description = hasTitle ? message.substring(colonIndex + 1).trim() : message
 
     return (
-        <div className="fixed top-4 left-3 right-3 sm:left-4 sm:right-4 md:left-1/2 md:-translate-x-1/2 md:max-w-lg z-[100] animate-in slide-in-from-top-4 fade-in duration-400 ease-out">
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-full max-w-[90vw] sm:max-w-md animate-in slide-in-from-top-4 fade-in duration-500 ease-out-spring">
             <div className={`
-                backdrop-blur-2xl border shadow-2xl rounded-3xl overflow-hidden
+                relative overflow-hidden rounded-[2rem] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border backdrop-blur-3xl
                 ${type === 'error'
-                    ? 'bg-gradient-to-br from-red-500/95 via-red-500/90 to-red-600/95 border-red-400/30 text-white'
+                    ? 'bg-background/80 border-red-500/20'
                     : type === 'info'
-                        ? 'bg-gradient-to-br from-blue-500/95 via-blue-500/90 to-blue-600/95 border-blue-400/30 text-white'
-                        : 'bg-gradient-to-br from-emerald-500/95 via-emerald-500/90 to-emerald-600/95 border-emerald-400/30 text-white'
+                        ? 'bg-background/80 border-blue-500/20'
+                        : 'bg-background/80 border-emerald-500/20'
                 }
             `}>
-                {/* Main Content */}
-                <div className="px-4 py-4 sm:px-5 sm:py-4">
-                    <div className="flex items-start gap-3 sm:gap-4">
-                        {/* Icon */}
-                        <div className={`
-                            w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex-shrink-0 flex items-center justify-center
-                            bg-white/20 backdrop-blur-sm shadow-inner
-                        `}>
-                            {type === 'error' ? <AlertIcon className="w-5 h-5 sm:w-6 sm:h-6" /> :
-                                type === 'info' ? <InfoIcon className="w-5 h-5 sm:w-6 sm:h-6" /> :
-                                    <CheckIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-                            }
-                        </div>
+                {/* Subtle Gradient Glow */}
+                <div className={`absolute inset-0 opacity-[0.08] pointer-events-none ${type === 'error' ? 'bg-gradient-to-r from-red-500 to-transparent' :
+                    type === 'info' ? 'bg-gradient-to-r from-blue-500 to-transparent' :
+                        'bg-gradient-to-r from-emerald-500 to-transparent'
+                    }`} />
 
-                        {/* Message Content */}
-                        <div className="flex-1 min-w-0 pt-0.5">
-                            {/* Type Badge or Title */}
-                            <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.15em] opacity-80 mb-1">
-                                {title || (type === 'error' ? 'Error' : type === 'info' ? 'Notice' : 'Success')}
-                            </p>
-                            {/* Message - Now wraps properly */}
-                            <p className="text-[13px] sm:text-sm font-semibold leading-relaxed opacity-95">
-                                {description}
-                            </p>
-                        </div>
+                <div className="relative p-1.5 pr-2 flex items-center gap-3">
+                    {/* Icon Container */}
+                    <div className={`
+                        w-10 h-10 rounded-full flex items-center justify-center shadow-sm flex-shrink-0
+                        ${type === 'error'
+                            ? 'bg-red-500 text-white shadow-red-500/20'
+                            : type === 'info'
+                                ? 'bg-blue-500 text-white shadow-blue-500/20'
+                                : 'bg-emerald-500 text-white shadow-emerald-500/20'
+                        }
+                    `}>
+                        {type === 'error' ? <AlertIcon className="w-5 h-5" /> :
+                            type === 'info' ? <InfoIcon className="w-5 h-5" /> :
+                                <CheckIcon className="w-5 h-5" />
+                        }
+                    </div>
 
-                        {/* Close Button */}
+                    {/* Content */}
+                    <div className="flex-1 min-w-0 py-1.5">
+                        <p className={`text-[10px] font-black uppercase tracking-widest mb-0.5 ${type === 'error' ? 'text-red-500' :
+                            type === 'info' ? 'text-blue-500' :
+                                'text-emerald-500'
+                            }`}>
+                            {title || (type === 'error' ? 'Error' : type === 'info' ? 'Notice' : 'Success')}
+                        </p>
+                        <p className="text-xs font-bold text-foreground/90 leading-tight">
+                            {description}
+                        </p>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-1 pl-2 border-l border-border/50">
+                        {onUndo && (
+                            <button
+                                onClick={onUndo}
+                                className="p-2 rounded-full hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors active:scale-90"
+                                title="Undo"
+                            >
+                                <UndoIcon className="w-4 h-4" />
+                                <span className="sr-only">Undo</span>
+                            </button>
+                        )}
                         <button
                             onClick={onClose}
-                            className="p-2 -mr-1 -mt-1 rounded-xl hover:bg-white/15 active:bg-white/25 active:scale-90 transition-all flex-shrink-0"
-                            aria-label="Close notification"
+                            className="p-2 rounded-full hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors active:scale-90"
                         >
-                            <XIcon className="w-4 h-4 sm:w-5 sm:h-5 opacity-80" />
+                            <XIcon className="w-4 h-4" />
                         </button>
                     </div>
                 </div>
-
-                {/* Undo Action Bar - Only shows when undo is available */}
-                {onUndo && (
-                    <div className="px-4 pb-3 sm:px-5 sm:pb-4 -mt-1">
-                        <button
-                            onClick={onUndo}
-                            className="w-full py-2.5 bg-white/20 hover:bg-white/30 active:bg-white/40 backdrop-blur-sm rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-widest active:scale-[0.98] transition-all"
-                        >
-                            Tap to Undo
-                        </button>
-                    </div>
-                )}
             </div>
         </div>
     )

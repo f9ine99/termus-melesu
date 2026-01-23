@@ -8,6 +8,7 @@ import ReportsScreen from "@/components/screens/reports-screen"
 import SettingsScreen from "@/components/screens/settings-screen"
 import CustomerDetailScreen from "@/components/screens/customer-detail-screen"
 import AiInsightsScreen from "@/components/screens/ai-insights-screen"
+import RiskManagementScreen from "@/components/screens/risk-management-screen"
 import type { SafeUser } from "@/lib/types"
 import { ChartIcon, PeopleIcon, SettingsIcon, AddIcon, LogoutIcon, XIcon, CheckIcon, UndoIcon, AlertIcon, InfoIcon, GridIcon } from "@/components/ui/icons"
 import { NotificationToast } from "@/components/ui/notification-toast"
@@ -23,7 +24,7 @@ interface DashboardLayoutProps {
   onLogout: () => void
 }
 
-type ScreenType = "transaction" | "dashboard" | "customers" | "customer-detail" | "reports" | "settings" | "ai-insights"
+type ScreenType = "transaction" | "dashboard" | "customers" | "customer-detail" | "reports" | "settings" | "ai-insights" | "risk-management"
 
 interface StackEntry {
   screen: ScreenType
@@ -224,6 +225,7 @@ export default function DashboardLayout({ user, onLogout }: DashboardLayoutProps
             key={`reports-${dataVersion}`}
             onBack={goBack}
             onNavigateToAiInsights={(period: SummaryPeriod) => navigateTo("ai-insights", { period })}
+            onNavigateToRiskManagement={() => navigateTo("risk-management")}
             onNotify={notify}
             t={t}
             language={language}
@@ -236,6 +238,16 @@ export default function DashboardLayout({ user, onLogout }: DashboardLayoutProps
             onBack={goBack}
             onNotify={notify}
             initialPeriod={currentScreen.params?.period}
+            t={t}
+            language={language}
+          />
+        )
+      case "risk-management":
+        return (
+          <RiskManagementScreen
+            key={`risk-management-${dataVersion}`}
+            onBack={goBack}
+            onNotify={notify}
             t={t}
             language={language}
           />

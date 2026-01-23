@@ -215,11 +215,15 @@ export const addTransaction = (transaction: Transaction): void => {
           const newOutstanding =
             transaction.type === "issue"
               ? c.bottlesOutstanding + totalBottles
-              : Math.max(0, c.bottlesOutstanding - totalBottles)
+              : transaction.type === "return"
+                ? Math.max(0, c.bottlesOutstanding - totalBottles)
+                : 0 // settle sets to 0
           const newDeposits =
             transaction.type === "issue"
               ? c.depositsHeld + totalDeposit
-              : Math.max(0, c.depositsHeld - totalDeposit)
+              : transaction.type === "return"
+                ? Math.max(0, c.depositsHeld - totalDeposit)
+                : 0 // settle sets to 0
 
           return {
             ...c,
@@ -331,6 +335,14 @@ export const getDashboardStats = () => {
     .filter((t) => t.type === "return")
     .reduce((sum, t) => sum + t.bottleCount, 0)
 
+  const totalIssues = transactions
+    .filter((t) => t.type === "issue")
+    .reduce((sum, t) => sum + t.bottleCount, 0)
+
+  const totalReturns = transactions
+    .filter((t) => t.type === "return")
+    .reduce((sum, t) => sum + t.bottleCount, 0)
+
   return {
     totalBottlesOutstanding,
     totalDepositsHeld,
@@ -338,7 +350,24 @@ export const getDashboardStats = () => {
     approvedCustomers: approvedCount,
     todayIssues,
     todayReturns,
+    totalIssues,
+    totalReturns,
   }
+}
+
+export const getOverdueCustomers = (days = 14): (Customer & { daysInactive: number })[] => {
+  const customers = getCustomers()
+  const now = new Date()
+
+  return customers
+    .filter((c) => c.bottlesOutstanding > 0)
+    .map((c) => {
+      const lastTxnDate = c.lastTransaction ? new Date(c.lastTransaction) : new Date(0)
+      const daysInactive = Math.floor((now.getTime() - lastTxnDate.getTime()) / (1000 * 60 * 60 * 24))
+      return { ...c, daysInactive }
+    })
+    .filter((c) => c.daysInactive >= days)
+    .sort((a, b) => b.daysInactive - a.daysInactive)
 }
 
 export const exportData = (): string => {

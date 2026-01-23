@@ -12,27 +12,27 @@
 
 ## Core Features
 
-### 📱 Progressive Web App (PWA)
+###  Progressive Web App (PWA)
 - **Installable:** Functions as a native app on iOS and Android devices.
 - **Offline-Ready:** Continue working seamlessly without an internet connection; data syncs automatically when online.
 - **Home Screen Access:** Quick access with a custom icon and splash screen.
 
-### 🎨 Modern User Experience
+###  Modern User Experience
 - **Glassmorphism UI:** A premium, translucent design system that provides depth and context.
 - **Dynamic Notifications:** "Dynamic Island" style alerts that float elegantly over content.
 - **Fluid Animations:** Smooth transitions and spring-based interactions for a natural feel.
 
-### ⚡ Performance & Scale
+###  Performance & Scale
 - **Smart Virtualization:** Handles thousands of transactions effortlessly by rendering only what's visible.
 - **On-Demand Loading:** "Load More" patterns keep the interface clean and snappy.
 - **Full Data Export:** One-click CSV export for comprehensive offline analysis.
 
-### 📊 AI-Powered Analytics
+###  AI-Powered Analytics
 - **Business Summaries:** Automated performance reporting powered by **Groq AI** (Llama 3.3).
 - **Trend Analysis:** Visual insights into bottle circulation and financial health.
 - **All-Time Tracking:** Monitor lifetime "Total Borrowed" and "Total Returned" stats alongside daily metrics.
 
-### 🛡️ Trust & Security
+###  Trust & Security
 - **Trust-Based Logic:** Automated deposit tracking for new customers vs. credit profiles for trusted partners.
 - **Secure Deletion:** PIN-protected transaction removal to prevent unauthorized data tampering.
 

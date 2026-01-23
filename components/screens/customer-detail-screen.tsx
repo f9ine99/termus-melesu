@@ -158,7 +158,7 @@ export default function CustomerDetailScreen({ customerId, onBack, onNavigateToI
           </div>
           <div className="space-y-3">
             {transactions.length > 0 ? (
-              transactions.map((txn) => (
+              transactions.slice(0, 20).map((txn) => (
                 <div key={txn.id} className="bg-card/50 backdrop-blur-sm border border-border rounded-3xl p-4 shadow-soft flex items-center gap-3 group">
                   <div className="flex-1 min-w-0">
                     <ActivityItem transaction={txn} t={t} />

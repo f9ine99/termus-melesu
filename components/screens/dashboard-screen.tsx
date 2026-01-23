@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from "react"
 import { getDashboardStats, getRecentTransactions } from "@/lib/data-store"
 import ActivityItem from "@/components/ui/activity-item"
 import { BottleIcon, MoneyIcon, PeopleIcon, AddIcon, ChartIcon, SendIcon, ReceiveIcon, CloudIcon, SparkleIcon, XIcon, CopyIcon, CheckIcon, ArrowLeftIcon, AlertIcon } from "@/components/ui/icons"
+import { Button } from "@/components/ui/moving-border"
 import { getTransactionSummary, filterTransactionsByPeriod } from "@/lib/ai-service"
 import type { Language } from "@/lib/types"
 
@@ -77,7 +78,12 @@ export default function DashboardScreen({
       {/* Header */}
       <header className="px-6 pt-10 pb-4 flex items-center justify-between sticky top-0 bg-background/60 backdrop-blur-xl z-20">
         <div className="flex flex-col">
-          <h1 className="text-2xl font-black tracking-tight text-foreground leading-none">{t("dashboard")}</h1>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/20">
+              <BottleIcon className="w-5 h-5 text-white" />
+            </div>
+            <h1 className="text-3xl font-black tracking-tighter bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent leading-none">Retra</h1>
+          </div>
           <div className="flex items-center gap-1.5 mt-1">
             <div className={`w-1.5 h-1.5 rounded-full ${syncStatus === 'online' ? 'bg-green-500' : syncStatus === 'offline' ? 'bg-red-500' : 'bg-amber-500 animate-pulse'}`} />
             <div className="flex flex-col min-w-[100px]">
@@ -98,12 +104,15 @@ export default function DashboardScreen({
           </div>
         </div>
 
-        <button
+        <Button
           onClick={onFixSync}
-          className={`group flex items-center gap-2.5 px-4 py-2 rounded-2xl border transition-all duration-500 active:scale-95 relative overflow-hidden ${syncStatus === 'online'
-            ? 'bg-secondary/50 border-border/50 text-foreground hover:bg-secondary/80'
-            : 'bg-primary/10 border-primary/20 text-primary'
+          borderRadius="1rem"
+          containerClassName="rounded-2xl"
+          className={`group flex items-center gap-2.5 px-4 py-2 transition-all duration-500 active:scale-95 ${syncStatus === 'online'
+            ? 'bg-secondary/50 text-foreground hover:bg-secondary/80'
+            : 'bg-primary/10 text-primary'
             }`}
+          borderClassName={syncStatus === 'online' ? "bg-[radial-gradient(#38bdf8_0%,transparent_60%)] h-4 w-4 opacity-50" : undefined}
         >
           <div className="relative z-10 flex items-center gap-2">
             <div className="relative">
@@ -121,7 +130,7 @@ export default function DashboardScreen({
               )}
             </div>
           </div>
-        </button>
+        </Button>
       </header>
 
       <main className="flex-1 px-6 pt-6 pb-32 overflow-y-auto no-scrollbar space-y-8 relative z-10">

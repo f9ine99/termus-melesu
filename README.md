@@ -28,7 +28,7 @@
 - **Full Data Export:** One-click CSV export for comprehensive offline analysis.
 
 ###  AI-Powered Analytics
-- **Business Summaries:** Automated performance reporting powered by **Groq AI** (Llama 3.3).
+- **Business Summaries:** Automated performance reporting powered by **Groq AI** (gpt-oss-120b).
 - **Trend Analysis:** Visual insights into bottle circulation and financial health.
 - **All-Time Tracking:** Monitor lifetime "Total Borrowed" and "Total Returned" stats alongside daily metrics.
 
@@ -40,11 +40,11 @@
 
 ## Technical Stack
 
-- **Framework:** Next.js 15 (App Router), React 19.
-- **Styling:** Tailwind CSS 4, Framer Motion (Animations).
+- **Framework:** Next.js (App Router), React.
+- **Styling:** Tailwind CSS, Framer Motion (Animations).
 - **UI Components:** Radix UI, Lucide React, Sonner (Notifications).
 - **Backend:** Supabase (PostgreSQL, Authentication, Real-time Sync).
-- **AI Integration:** Groq AI (Llama 3.3).
+- **AI Integration:** Groq AI (openai/gpt-oss-120b).
 - **State Management:** React Hooks with Local Storage for offline resilience.
 - **Analytics:** Vercel Analytics.
 

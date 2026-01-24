@@ -102,7 +102,7 @@ export default function DashboardScreen({
               ? 'bg-secondary/50 text-foreground hover:bg-secondary/80'
               : 'bg-primary/10 text-primary'
               }`}
-            borderClassName={syncStatus === 'online' ? "bg-[radial-gradient(#38bdf8_0%,transparent_60%)] h-4 w-4 opacity-50" : undefined}
+            borderClassName={syncStatus === 'online' ? "bg-[radial-gradient(var(--primary)_0%,transparent_60%)] h-20 w-20 opacity-70" : undefined}
           >
             <div className="relative z-10 flex items-center gap-3">
               <div className="relative">

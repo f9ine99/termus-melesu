@@ -81,13 +81,13 @@ export default function DashboardScreen({
         <div className="flex flex-col">
           <div className="flex items-center gap-4">
             <div className="relative group/logo">
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 blur-lg opacity-40 group-hover/logo:opacity-60 transition-opacity" />
-              <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-xl shadow-teal-500/30 border border-white/20">
-                <BottleIcon className="w-6 h-6 text-white drop-shadow-sm" />
+              <div className="absolute inset-0 rounded-2xl bg-primary blur-lg opacity-40 group-hover/logo:opacity-60 transition-opacity" />
+              <div className="relative w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-xl shadow-primary/30 border border-white/20">
+                <BottleIcon className="w-6 h-6 text-primary-foreground drop-shadow-sm" />
               </div>
             </div>
             <div className="flex flex-col gap-1.5">
-              <h1 className="text-[1.75rem] font-black tracking-tight bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent leading-none">Retra</h1>
+              <h1 className="text-[1.75rem] font-black tracking-tight text-primary leading-none">Retra</h1>
               <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-muted-foreground/60">Bottle Manager</span>
             </div>
           </div>

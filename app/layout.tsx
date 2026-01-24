@@ -51,6 +51,7 @@ export const viewport: Viewport = {
 
 import { ThemeProvider } from "@/components/theme-provider"
 import { ColorThemeProvider } from "@/components/color-theme-provider"
+import { ThemeColorMeta } from "@/components/theme-color-meta"
 
 import { MobileRecommendation } from "@/components/mobile-recommendation"
 
@@ -68,6 +69,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <ThemeColorMeta />
           <ColorThemeProvider>
             <MobileRecommendation />
             {children}

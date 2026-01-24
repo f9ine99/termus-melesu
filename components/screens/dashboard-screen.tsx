@@ -76,7 +76,8 @@ export default function DashboardScreen({
       <div className="absolute top-[40%] right-[10%] w-[30%] h-[30%] bg-accent/10 rounded-full blur-[100px] pointer-events-none animate-float" />
 
       {/* Header */}
-      <header className="px-7 pt-14 pb-8 flex items-start justify-between sticky top-0 bg-background/70 backdrop-blur-xl z-20">
+      <header className="px-7 pt-14 pb-8 flex items-start justify-between sticky top-0 bg-background z-20">
+        <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-b from-background to-transparent -mb-6 pointer-events-none" />
         <div className="flex flex-col">
           <div className="flex items-center gap-4">
             <div className="relative group/logo">

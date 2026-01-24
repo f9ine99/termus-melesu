@@ -4,8 +4,8 @@
     "description": "Offline-first bottle ledger for small retail shops",
     "start_url": "/",
     "display": "standalone",
-    "background_color": "#000000",
-    "theme_color": "#000000",
+    "background_color": "#f8fafc",
+    "theme_color": "#f8fafc",
     "icons": [
         {
             "src": "/icon-192.png",

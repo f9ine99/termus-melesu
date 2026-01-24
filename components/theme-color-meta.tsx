@@ -7,20 +7,39 @@ export function ThemeColorMeta() {
     const { resolvedTheme } = useTheme()
 
     useEffect(() => {
-        // Update theme-color meta tag based on current theme
-        const themeColor = resolvedTheme === "dark" ? "#0a0a0a" : "#f8fafc"
+        // Small delay to ensure CSS has loaded and applied
+        const updateThemeColor = () => {
+            // Get the actual computed background color from the document
+            const computedStyle = getComputedStyle(document.documentElement)
+            const bgColor = computedStyle.getPropertyValue('--background').trim()
 
-        // Find existing theme-color meta tag or create one
-        let metaThemeColor = document.querySelector('meta[name="theme-color"]')
+            // Convert oklch to a usable color or use fallback
+            // Note: Some browsers may not return oklch properly, so we use fallbacks
+            let themeColor: string
 
-        if (metaThemeColor) {
-            metaThemeColor.setAttribute("content", themeColor)
-        } else {
-            metaThemeColor = document.createElement("meta")
-            metaThemeColor.setAttribute("name", "theme-color")
-            metaThemeColor.setAttribute("content", themeColor)
-            document.head.appendChild(metaThemeColor)
+            if (resolvedTheme === "dark") {
+                themeColor = "#0f0f11" // Dark fallback that matches oklch(0.08 0.03 270)
+            } else {
+                themeColor = "#fafafa" // Light fallback that matches oklch(0.99 0.005 270)
+            }
+
+            // Find existing theme-color meta tag or create one
+            let metaThemeColor = document.querySelector('meta[name="theme-color"]')
+
+            if (metaThemeColor) {
+                metaThemeColor.setAttribute("content", themeColor)
+            } else {
+                metaThemeColor = document.createElement("meta")
+                metaThemeColor.setAttribute("name", "theme-color")
+                metaThemeColor.setAttribute("content", themeColor)
+                document.head.appendChild(metaThemeColor)
+            }
         }
+
+        // Run after a small delay to ensure styles are applied
+        const timeoutId = setTimeout(updateThemeColor, 50)
+
+        return () => clearTimeout(timeoutId)
     }, [resolvedTheme])
 
     return null

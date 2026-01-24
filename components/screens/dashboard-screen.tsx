@@ -76,61 +76,62 @@ export default function DashboardScreen({
       <div className="absolute top-[40%] right-[10%] w-[30%] h-[30%] bg-accent/10 rounded-full blur-[100px] pointer-events-none animate-float" />
 
       {/* Header */}
-      <header className="px-6 pt-10 pb-4 flex items-center justify-between sticky top-0 bg-background/60 backdrop-blur-xl z-20">
+      <header className="px-7 pt-14 pb-8 flex items-start justify-between sticky top-0 bg-background/70 backdrop-blur-xl z-20">
         <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/20">
-              <BottleIcon className="w-5 h-5 text-white" />
+          <div className="flex items-center gap-4">
+            <div className="relative group/logo">
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 blur-lg opacity-40 group-hover/logo:opacity-60 transition-opacity" />
+              <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-xl shadow-teal-500/30 border border-white/20">
+                <BottleIcon className="w-6 h-6 text-white drop-shadow-sm" />
+              </div>
             </div>
-            <h1 className="text-3xl font-black tracking-tighter bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent leading-none">Retra</h1>
-          </div>
-          <div className="flex items-center gap-1.5 mt-1">
-            <div className={`w-1.5 h-1.5 rounded-full ${syncStatus === 'online' ? 'bg-green-500' : syncStatus === 'offline' ? 'bg-red-500' : 'bg-amber-500 animate-pulse'}`} />
-            <div className="flex flex-col min-w-[100px]">
-              {syncStatus === 'online' ? (
-                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none">
-                  {lastSyncTime ? `${t("lastSynced")} ${formatRelativeTime(lastSyncTime)}` : t("neverSynced")}
-                </p>
-              ) : syncStatus === 'offline' ? (
-                <p className="text-[10px] font-bold text-red-500/80 uppercase tracking-widest leading-none">
-                  {t("offline")}
-                </p>
-              ) : (
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none">
-                  {t("syncing")}
-                </p>
-              )}
+            <div className="flex flex-col gap-1.5">
+              <h1 className="text-[1.75rem] font-black tracking-tight bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent leading-none">Retra</h1>
+              <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-muted-foreground/60">Bottle Manager</span>
             </div>
           </div>
         </div>
 
-        <Button
-          onClick={onFixSync}
-          borderRadius="1rem"
-          containerClassName="rounded-2xl"
-          className={`group flex items-center gap-2.5 px-4 py-2 transition-all duration-500 active:scale-95 ${syncStatus === 'online'
-            ? 'bg-secondary/50 text-foreground hover:bg-secondary/80'
-            : 'bg-primary/10 text-primary'
-            }`}
-          borderClassName={syncStatus === 'online' ? "bg-[radial-gradient(#38bdf8_0%,transparent_60%)] h-4 w-4 opacity-50" : undefined}
-        >
-          <div className="relative z-10 flex items-center gap-2">
-            <div className="relative">
-              <CloudIcon className={`w-5 h-5 ${syncStatus === 'syncing' ? 'animate-pulse' : ''}`} />
-              {pendingCount > 0 && (
-                <div className="absolute -right-1 -top-1 w-2 h-2 bg-primary rounded-full border border-background" />
-              )}
+        <div className="flex flex-col items-end gap-2.5">
+          <Button
+            onClick={onFixSync}
+            borderRadius="1rem"
+            containerClassName="rounded-2xl"
+            className={`group flex items-center gap-3.5 px-5 py-3 transition-all duration-500 active:scale-95 ${syncStatus === 'online'
+              ? 'bg-secondary/50 text-foreground hover:bg-secondary/80'
+              : 'bg-primary/10 text-primary'
+              }`}
+            borderClassName={syncStatus === 'online' ? "bg-[radial-gradient(#38bdf8_0%,transparent_60%)] h-4 w-4 opacity-50" : undefined}
+          >
+            <div className="relative z-10 flex items-center gap-3">
+              <div className="relative">
+                <CloudIcon className={`w-5 h-5 ${syncStatus === 'syncing' ? 'animate-pulse' : ''}`} />
+                {pendingCount > 0 && (
+                  <div className="absolute -right-1 -top-1 w-2 h-2 bg-primary rounded-full border border-background" />
+                )}
+              </div>
+              <div className="flex flex-col items-start gap-0.5">
+                <span className="text-[9px] font-black uppercase tracking-wider leading-none">
+                  {syncStatus === 'online' ? t("cloud") : syncStatus === 'offline' ? t("offline") : t("sync")}
+                </span>
+                {pendingCount > 0 && (
+                  <span className="text-[7px] font-bold opacity-70 leading-none">{pendingCount} pending</span>
+                )}
+              </div>
             </div>
-            <div className="flex flex-col items-start">
-              <span className="text-[9px] font-black uppercase tracking-wider leading-none">
-                {syncStatus === 'online' ? t("cloud") : syncStatus === 'offline' ? t("offline") : t("sync")}
-              </span>
-              {pendingCount > 0 && (
-                <span className="text-[7px] font-bold opacity-70 leading-none mt-0.5">{pendingCount} pending</span>
-              )}
-            </div>
+          </Button>
+          <div className="flex items-center gap-1.5 opacity-50 pr-0.5">
+            <div className={`w-1 h-1 rounded-full ${syncStatus === 'online' ? 'bg-emerald-500' : syncStatus === 'offline' ? 'bg-red-400' : 'bg-amber-400 animate-pulse'}`} />
+            <span className="text-[7px] font-medium text-muted-foreground tracking-wide">
+              {syncStatus === 'online'
+                ? (lastSyncTime ? formatRelativeTime(lastSyncTime) : t("neverSynced"))
+                : syncStatus === 'offline'
+                  ? t("offline")
+                  : t("syncing")
+              }
+            </span>
           </div>
-        </Button>
+        </div>
       </header>
 
       <main className="flex-1 px-6 pt-6 pb-32 overflow-y-auto no-scrollbar space-y-8 relative z-10">

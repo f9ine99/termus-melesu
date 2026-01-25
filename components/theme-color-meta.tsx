@@ -20,7 +20,7 @@ export function ThemeColorMeta() {
             if (resolvedTheme === "dark") {
                 themeColor = "#0f0f11" // Dark fallback that matches oklch(0.08 0.03 270)
             } else {
-                themeColor = "#fafafa" // Light fallback that matches oklch(0.99 0.005 270)
+                themeColor = "#ffffff" // Pure white for light mode
             }
 
             // Find existing theme-color meta tag or create one

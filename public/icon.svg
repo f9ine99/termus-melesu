@@ -1,15 +1,18 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
+      <stop offset="0%" style="stop-color:#7c3aed;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4c1d95;stop-opacity:1" />
     </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#7c3aed" flood-opacity="0.3"/>
+    </filter>
   </defs>
-  <rect width="512" height="512" rx="120" fill="url(#grad1)"/>
-  <g transform="translate(64, 64) scale(16)">
+  <rect width="512" height="512" rx="128" fill="url(#grad1)" filter="url(#shadow)"/>
+  <g transform="translate(128, 96) scale(10.5)">
     <path d="M10 2H14V4C14 4.55228 13.5523 5 13 5H11C10.4477 5 10 4.55228 10 4V2Z" fill="white"/>
-    <path d="M10 5V7.66482C10 8.34517 9.65342 8.97824 9.07612 9.35134L7.15225 10.5957C6.4311 11.0621 6 11.8592 6 12.714V19C6 20.6569 7.34315 22 9 22H15C16.6569 22 18 20.6569 18 19V12.714C18 11.8592 17.5689 11.0621 16.8478 10.5957L14.9239 9.35134C14.3466 8.97824 14 8.34517 14 7.66482V5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M9 14H15" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-    <path d="M9 17H15" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+    <path d="M10 5V7.66482C10 8.34517 9.65342 8.97824 9.07612 9.35134L7.15225 10.5957C6.4311 11.0621 6 11.8592 6 12.714V19C6 20.6569 7.34315 22 9 22H15C16.6569 22 18 20.6569 18 19V12.714C18 11.8592 17.5689 11.0621 16.8478 10.5957L14.9239 9.35134C14.3466 8.97824 14 8.34517 14 7.66482V5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M9 14H15" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+    <path d="M9 17H15" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
   </g>
 </svg>

@@ -1,7 +1,7 @@
 {
-    "name": "Retra - Retail Ledger",
+    "name": "Retra - Bottle Manager",
     "short_name": "Retra",
-    "description": "Offline-first bottle ledger for small retail shops",
+    "description": "Professional bottle tracking and management for retail shops",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#fafafa",

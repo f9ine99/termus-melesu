@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { getCustomerById, getCustomerTransactions, updateCustomerTrustStatus, deleteTransaction } from "@/lib/data-store"
-import { getStoredSession, verifyCurrentUserPin } from "@/lib/auth-store"
+import { getStoredSession } from "@/lib/auth-store"
 import ActivityItem from "@/components/ui/activity-item"
 import { ArrowLeftIcon, BottleIcon, MoneyIcon, AddIcon, SendIcon, ReceiveIcon, CheckIcon, XIcon, TrashIcon } from "@/components/ui/icons"
 import ConfirmModal from "@/components/ui/confirm-modal"
@@ -31,12 +31,6 @@ export default function CustomerDetailScreen({ customerId, onBack, onNavigateToI
 
   const handleDelete = async () => {
     if (!deleteId) return
-
-    const isValidPin = await verifyCurrentUserPin(pin)
-    if (!isValidPin) {
-      setError(t("incorrectPin"))
-      return
-    }
 
     deleteTransaction(deleteId)
     setDeleteId(null)
@@ -194,17 +188,6 @@ export default function CustomerDetailScreen({ customerId, onBack, onNavigateToI
             </div>
 
             <div className="space-y-4">
-              <input
-                type="password"
-                value={pin}
-                onChange={(e) => {
-                  setPin(e.target.value)
-                  setError("")
-                }}
-                placeholder="PIN"
-                className="w-full px-6 py-4 bg-secondary/50 border border-border rounded-xl text-center text-lg font-black tracking-widest focus:ring-2 focus:ring-primary/20 transition-all"
-                autoFocus
-              />
               {error && <p className="text-xs font-bold text-red-500 text-center">{error}</p>}
             </div>
 
@@ -221,7 +204,6 @@ export default function CustomerDetailScreen({ customerId, onBack, onNavigateToI
               </button>
               <button
                 onClick={handleDelete}
-                disabled={!pin}
                 className="flex-1 py-4 bg-red-500 text-white rounded-xl font-bold text-xs shadow-lg transition-all active:scale-95 disabled:opacity-50"
               >
                 {t("confirm")}

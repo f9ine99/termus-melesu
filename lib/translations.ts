@@ -9,7 +9,9 @@ export const translations = {
         reports: "Analytics",
         settings: "Settings",
         back: "Back",
-        logout: "Logout",
+        logout: "Sign Out",
+        logoutConfirmTitle: "Sign Out?",
+        logoutConfirmMessage: "Are you sure you want to sign out? Your local data will remain safe on this device.",
         search: "Search...",
         loading: "Loading...",
 
@@ -145,7 +147,7 @@ export const translations = {
 
         // Settings
         profileSettings: "Profile Settings",
-        adminName: "Admin Name",
+        adminName: "Name",
         language: "Language",
         theme: "Theme",
         violet: "Violet",
@@ -235,6 +237,8 @@ export const translations = {
         settings: "ቅንብሮች",
         back: "ተመለስ",
         logout: "ውጣ",
+        logoutConfirmTitle: "መውጣት ይፈልጋሉ?",
+        logoutConfirmMessage: "እርግጠኛ ነዎት መውጣት ይፈልጋሉ? የእርስዎ መረጃ በዚህ መሣሪያ ላይ በሰላም ይቆያል።",
         search: "ፈልግ...",
         loading: "በመጫን ላይ...",
 
@@ -371,7 +375,7 @@ export const translations = {
 
         // Settings
         profileSettings: "የመገለጫ ቅንብሮች",
-        adminName: "የአስተዳዳሪ ስም",
+        adminName: "ስም",
         language: "ቋንቋ",
         theme: "ገጽታ",
         violet: "ቫዮሌት",

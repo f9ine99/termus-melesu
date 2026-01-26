@@ -9,21 +9,25 @@ export type BottleType = "Soft Drink (300ML)" | "Beer" | "Wine" | "Sofi Malt" | 
 export interface User {
   id: string
   username: string
-  pinHash: string  // Changed from 'pin' - now stores hashed PIN
-  adminName: string
-  createdAt: Date
+  passwordHash: string // Renamed from pinHash
+  name: string
+  createdAt: Date | string
 }
+
+// For storing in localStorage users list
+export interface UserAccount extends User { }
 
 // Safe user object without sensitive data (for session storage)
 export interface SafeUser {
   id: string
   username: string
-  adminName: string
-  createdAt: Date
+  name: string
+  createdAt: Date | string
 }
 
 export interface Customer {
   id: string
+  userId: string
   name: string
   phone: string
   address?: string
@@ -51,6 +55,7 @@ export interface InventoryItem {
 
 export interface Transaction {
   id: string
+  userId: string
   customerId: string
   customerName?: string
   type: TransactionType
@@ -69,7 +74,7 @@ export interface Transaction {
 
 export interface AuthState {
   isLoggedIn: boolean
-  user: User | null
+  user: SafeUser | null
   loading: boolean
   error?: string
 }

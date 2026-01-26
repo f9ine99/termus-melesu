@@ -262,6 +262,10 @@ export async function syncTransactionDeleteToCloud(transactionId: string): Promi
 async function processPendingChanges(): Promise<number> {
     if (!isSupabaseConfigured() || !supabase) return 0
 
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) return 0
+    const userId = session.user.id
+
     const changes = getPendingChanges()
     if (changes.length === 0) return 0
 
@@ -284,7 +288,7 @@ async function processPendingChanges(): Promise<number> {
                 case 'add_customer':
                     const { error: addCustError } = await supabase
                         .from('customers')
-                        .upsert(toSupabaseCustomer(change.data), { onConflict: 'id' })
+                        .upsert({ ...toSupabaseCustomer(change.data), user_id: userId }, { onConflict: 'id' })
                     success = !addCustError
                     if (success) markItemAsSynced('customer', change.data.id)
                     break
@@ -297,11 +301,13 @@ async function processPendingChanges(): Promise<number> {
                     if (custUpdates.depositsHeld !== undefined) supabaseUpdates.deposits_held = custUpdates.depositsHeld
                     if (custUpdates.lastTransaction !== undefined) supabaseUpdates.last_transaction = custUpdates.lastTransaction
                     supabaseUpdates.updated_at = new Date().toISOString()
+                    supabaseUpdates.user_id = userId // Ensure user_id is set
 
                     const { error: updateCustError } = await supabase
                         .from('customers')
                         .update(supabaseUpdates)
                         .eq('id', custId)
+                        .eq('user_id', userId) // RLS safety
                     success = !updateCustError
                     if (success) markItemAsSynced('customer', custId)
                     break
@@ -311,13 +317,14 @@ async function processPendingChanges(): Promise<number> {
                         .from('customers')
                         .delete()
                         .eq('id', change.data.id)
+                        .eq('user_id', userId) // RLS safety
                     success = !delCustError
                     break
 
                 case 'add_transaction':
                     const { error: addTxnError } = await supabase
                         .from('transactions')
-                        .upsert(toSupabaseTransaction(change.data), { onConflict: 'id' })
+                        .upsert({ ...toSupabaseTransaction(change.data), user_id: userId }, { onConflict: 'id' })
                     success = !addTxnError
                     if (success) markItemAsSynced('transaction', change.data.id)
                     break
@@ -327,6 +334,7 @@ async function processPendingChanges(): Promise<number> {
                         .from('transactions')
                         .delete()
                         .eq('id', change.data.id)
+                        .eq('user_id', userId) // RLS safety
                     success = !delTxnError
                     break
             }
@@ -379,7 +387,7 @@ export async function triggerSync(): Promise<boolean> {
     if (!isOnline) return false
 
     try {
-        const pendingCount = getPendingChanges().length
+        const pendingCount = getPendingChangesCount()
         if (pendingCount === 0) {
             return false
         }
@@ -401,6 +409,10 @@ export async function pushAllDataToCloud(customers: Customer[], transactions: Tr
         return { success: false, error: 'Offline' }
     }
 
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) return { success: false, error: 'Not authenticated' }
+    const userId = session.user.id
+
     if (customers.length === 0 && transactions.length === 0) {
         return { success: false, error: 'No data to sync' }
     }
@@ -418,7 +430,10 @@ export async function pushAllDataToCloud(customers: Customer[], transactions: Tr
 
         // 1. Push customers
         if (unsyncedCustomers.length > 0) {
-            const supabaseCustomers = unsyncedCustomers.map(toSupabaseCustomer)
+            const supabaseCustomers = unsyncedCustomers.map(c => ({
+                ...toSupabaseCustomer(c),
+                user_id: userId
+            }))
             const { error: custError } = await supabase
                 .from('customers')
                 .upsert(supabaseCustomers, { onConflict: 'id' })
@@ -428,7 +443,10 @@ export async function pushAllDataToCloud(customers: Customer[], transactions: Tr
 
         // 2. Push transactions
         if (unsyncedTransactions.length > 0) {
-            const supabaseTransactions = unsyncedTransactions.map(toSupabaseTransaction)
+            const supabaseTransactions = unsyncedTransactions.map(t => ({
+                ...toSupabaseTransaction(t),
+                user_id: userId
+            }))
             const { error: txnError } = await supabase
                 .from('transactions')
                 .upsert(supabaseTransactions, { onConflict: 'id' })
@@ -447,13 +465,7 @@ export async function pushAllDataToCloud(customers: Customer[], transactions: Tr
         updateSyncStatus('online')
         return { success: true }
     } catch (e: any) {
-        console.error('Bulk push failed:', {
-            message: e.message,
-            details: e.details,
-            hint: e.hint,
-            code: e.code,
-            error: e
-        })
+        console.error('Bulk push failed:', e)
         updateSyncStatus('error')
         return { success: false, error: e.message || 'Unknown error' }
     }

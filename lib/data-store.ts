@@ -1,8 +1,8 @@
 // Client-side data store for customers and transactions
 // Offline-first with Supabase sync
 
-import { mockCustomers, mockTransactions } from "./mock-data"
-import type { Customer, Transaction, InventoryItem } from "./types"
+import type { Customer, Transaction, InventoryItem, SafeUser } from "./types"
+import { supabase, isSupabaseConfigured } from "./supabase"
 import {
   syncCustomerToCloud,
   syncCustomerUpdateToCloud,
@@ -14,8 +14,9 @@ import {
 // Simulate data persistence with localStorage
 const CUSTOMERS_KEY = "bottletrack_customers"
 const TRANSACTIONS_KEY = "bottletrack_transactions"
+const SESSION_KEY = "bottletrack_session"
 
-const STORAGE_VERSION = "v1.2" // Incrementing version to force reset and reflect admin name change
+const STORAGE_VERSION = "v1.3" // Version bump for multi-user support
 const VERSION_KEY = "bottletrack_version"
 
 const initializeStoredData = () => {
@@ -24,13 +25,11 @@ const initializeStoredData = () => {
   try {
     const currentVersion = localStorage.getItem(VERSION_KEY)
 
-    // If version mismatch or missing, clear old data and set new version
+    // If version mismatch or missing, we might need to migrate or clear
+    // For this transition, we'll keep existing data but it might lack userId
     if (currentVersion !== STORAGE_VERSION) {
-      localStorage.setItem(CUSTOMERS_KEY, JSON.stringify([]))
-      localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify([]))
-      localStorage.removeItem("bottletrack_session") // Force logout to refresh user data
       localStorage.setItem(VERSION_KEY, STORAGE_VERSION)
-      console.log("Data store initialized/reset to version:", STORAGE_VERSION)
+      console.log("Data store updated to version:", STORAGE_VERSION)
     }
   } catch (e) {
     console.error("Failed to initialize data:", e)
@@ -42,27 +41,55 @@ if (typeof window !== "undefined") {
   initializeStoredData()
 }
 
+// Helper to get current user ID from Supabase session
+const getCurrentUserId = (): string | null => {
+  if (typeof window === "undefined") return null
+  try {
+    // Supabase stores the session in localStorage with a specific key format
+    // We can try to find it or use the supabase client if it has it cached
+    const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL?.split("//")[1].split(".")[0]
+    const sessionStr = localStorage.getItem(`sb-${projectRef}-auth-token`)
+    if (sessionStr) {
+      const session = JSON.parse(sessionStr)
+      return session.user?.id || null
+    }
+  } catch {
+    return null
+  }
+  return null
+}
+
 // Artificial delay helper
 const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const getCustomers = (): Customer[] => {
-  if (typeof window === "undefined") return mockCustomers
+  if (typeof window === "undefined") return []
+
+  const userId = getCurrentUserId()
+  if (!userId) return []
 
   try {
     const stored = localStorage.getItem(CUSTOMERS_KEY)
-    return stored ? JSON.parse(stored) : []
+    const allCustomers: Customer[] = stored ? JSON.parse(stored) : []
+    // Filter by userId
+    return allCustomers.filter(c => c.userId === userId)
   } catch {
     return []
   }
 }
 
 export const getTransactions = (): (Transaction & { customerName: string })[] => {
+  const userId = getCurrentUserId()
+  if (!userId) return []
+
   const customers = getCustomers()
   const rawTransactions: Transaction[] = (() => {
     if (typeof window === "undefined") return []
     try {
       const stored = localStorage.getItem(TRANSACTIONS_KEY)
-      return stored ? JSON.parse(stored) : []
+      const allTransactions: Transaction[] = stored ? JSON.parse(stored) : []
+      // Filter by userId
+      return allTransactions.filter(t => t.userId === userId)
     } catch {
       return []
     }
@@ -88,8 +115,6 @@ export const getCustomerInventory = (customerId: string): InventoryItem[] => {
   const transactions = getCustomerTransactions(customerId)
   const inventory: Record<string, InventoryItem> = {}
 
-  // Process transactions from oldest to newest to build current inventory
-  // Sort by timestamp ascending
   const sortedTxns = [...transactions].sort((a, b) =>
     new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
   )
@@ -123,7 +148,6 @@ export const getCustomerInventory = (customerId: string): InventoryItem[] => {
     }
   }
 
-  // Filter out items with 0 count and return as array
   return Object.values(inventory).filter(item => item.count > 0)
 }
 
@@ -135,18 +159,25 @@ export const getRecentTransactions = (limit = 5): (Transaction & { customerName:
 
 export const addCustomer = (customer: Customer): { success: boolean; error?: string } => {
   if (typeof window === "undefined") return { success: false }
-  const customers = getCustomers()
 
-  // Check for duplicate phone
+  const userId = getCurrentUserId()
+  if (!userId) return { success: false, error: "Not authenticated" }
+
+  const customers = getCustomers()
+  const allStoredStored = localStorage.getItem(CUSTOMERS_KEY)
+  const allStored: Customer[] = allStoredStored ? JSON.parse(allStoredStored) : []
+
+  // Check for duplicate phone WITHIN this user's customers
   const phoneExists = customers.some(c => c.phone === customer.phone)
   if (phoneExists) {
     return { success: false, error: "A customer with this phone number already exists." }
   }
 
-  localStorage.setItem(CUSTOMERS_KEY, JSON.stringify([customer, ...customers]))
+  const newCustomer = { ...customer, userId }
+  localStorage.setItem(CUSTOMERS_KEY, JSON.stringify([newCustomer, ...allStored]))
 
-  // Sync to cloud (async, don't wait)
-  syncCustomerToCloud(customer)
+  // Sync to cloud
+  syncCustomerToCloud(newCustomer)
 
   return { success: true }
 }
@@ -155,14 +186,19 @@ export const deleteCustomer = (customerId: string): void => {
   if (typeof window === "undefined") return
 
   try {
-    // 1. Remove customer
-    const customers = getCustomers()
-    const updatedCustomers = customers.filter(c => c.id !== customerId)
+    const userId = getCurrentUserId()
+    if (!userId) return
+
+    // 1. Remove customer from all stored
+    const allStoredCustomersStored = localStorage.getItem(CUSTOMERS_KEY)
+    const allStoredCustomers: Customer[] = allStoredCustomersStored ? JSON.parse(allStoredCustomersStored) : []
+    const updatedCustomers = allStoredCustomers.filter(c => c.id !== customerId || c.userId !== userId)
     localStorage.setItem(CUSTOMERS_KEY, JSON.stringify(updatedCustomers))
 
-    // 2. Remove associated transactions
-    const transactions = getTransactions()
-    const updatedTransactions = transactions.filter(t => t.customerId !== customerId)
+    // 2. Remove associated transactions from all stored
+    const allStoredTransactionsStored = localStorage.getItem(TRANSACTIONS_KEY)
+    const allStoredTransactions: Transaction[] = allStoredTransactionsStored ? JSON.parse(allStoredTransactionsStored) : []
+    const updatedTransactions = allStoredTransactions.filter(t => t.customerId !== customerId || t.userId !== userId)
     localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(updatedTransactions))
 
     // Sync to cloud
@@ -176,9 +212,14 @@ export const updateCustomerTrustStatus = (customerId: string, status: "approved"
   if (typeof window === "undefined") return
 
   try {
-    const customers = getCustomers()
-    const updatedCustomers = customers.map(c =>
-      c.id === customerId ? { ...c, trustStatus: status } : c
+    const userId = getCurrentUserId()
+    if (!userId) return
+
+    const allStoredCustomersStored = localStorage.getItem(CUSTOMERS_KEY)
+    const allStoredCustomers: Customer[] = allStoredCustomersStored ? JSON.parse(allStoredCustomersStored) : []
+
+    const updatedCustomers = allStoredCustomers.map(c =>
+      (c.id === customerId && c.userId === userId) ? { ...c, trustStatus: status } : c
     )
     localStorage.setItem(CUSTOMERS_KEY, JSON.stringify(updatedCustomers))
 
@@ -193,17 +234,24 @@ export const addTransaction = (transaction: Transaction): void => {
   if (typeof window === "undefined") return
 
   try {
-    const transactions = getTransactions()
-    const updated = [...transactions, transaction]
+    const userId = getCurrentUserId()
+    if (!userId) return
+
+    const allStoredTransactionsStored = localStorage.getItem(TRANSACTIONS_KEY)
+    const allStoredTransactions: Transaction[] = allStoredTransactionsStored ? JSON.parse(allStoredTransactionsStored) : []
+
+    const newTransaction = { ...transaction, userId }
+    const updated = [...allStoredTransactions, newTransaction]
     localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(updated))
 
     // Update customer's outstanding bottles and deposits
     const customer = getCustomerById(transaction.customerId)
     if (customer) {
-      const customers = getCustomers()
-      const updatedCustomers = customers.map((c) => {
-        if (c.id === transaction.customerId) {
-          // Calculate totals from items if present, otherwise use top-level fields
+      const allStoredCustomersStored = localStorage.getItem(CUSTOMERS_KEY)
+      const allStoredCustomers: Customer[] = allStoredCustomersStored ? JSON.parse(allStoredCustomersStored) : []
+
+      const updatedCustomers = allStoredCustomers.map((c) => {
+        if (c.id === transaction.customerId && c.userId === userId) {
           const totalBottles = transaction.items
             ? transaction.items.reduce((sum, item) => sum + item.bottleCount, 0)
             : transaction.bottleCount
@@ -217,19 +265,18 @@ export const addTransaction = (transaction: Transaction): void => {
               ? c.bottlesOutstanding + totalBottles
               : transaction.type === "return"
                 ? Math.max(0, c.bottlesOutstanding - totalBottles)
-                : 0 // settle sets to 0
+                : 0
           const newDeposits =
             transaction.type === "issue"
               ? c.depositsHeld + totalDeposit
               : transaction.type === "return"
                 ? Math.max(0, c.depositsHeld - totalDeposit)
-                : 0 // settle sets to 0
+                : 0
 
           return {
             ...c,
             bottlesOutstanding: newOutstanding,
             depositsHeld: newDeposits,
-            trustStatus: c.trustStatus,
             lastTransaction: transaction.timestamp,
           }
         }
@@ -238,7 +285,7 @@ export const addTransaction = (transaction: Transaction): void => {
       localStorage.setItem(CUSTOMERS_KEY, JSON.stringify(updatedCustomers))
 
       // Sync customer update to cloud
-      const updatedCustomer = updatedCustomers.find(c => c.id === transaction.customerId)
+      const updatedCustomer = updatedCustomers.find(c => c.id === transaction.customerId && c.userId === userId)
       if (updatedCustomer) {
         syncCustomerUpdateToCloud(transaction.customerId, {
           bottlesOutstanding: updatedCustomer.bottlesOutstanding,
@@ -249,7 +296,7 @@ export const addTransaction = (transaction: Transaction): void => {
     }
 
     // Sync transaction to cloud
-    syncTransactionToCloud(transaction)
+    syncTransactionToCloud(newTransaction)
   } catch (e) {
     console.error("Failed to add transaction:", e)
   }
@@ -259,20 +306,26 @@ export const deleteTransaction = (transactionId: string): void => {
   if (typeof window === "undefined") return
 
   try {
-    const transactions = getTransactions()
-    const transaction = transactions.find(t => t.id === transactionId)
+    const userId = getCurrentUserId()
+    if (!userId) return
+
+    const allStoredTransactionsStored = localStorage.getItem(TRANSACTIONS_KEY)
+    const allStoredTransactions: Transaction[] = allStoredTransactionsStored ? JSON.parse(allStoredTransactionsStored) : []
+
+    const transaction = allStoredTransactions.find(t => t.id === transactionId && t.userId === userId)
     if (!transaction) return
 
-    const updatedTransactions = transactions.filter(t => t.id !== transactionId)
+    const updatedTransactions = allStoredTransactions.filter(t => t.id !== transactionId || t.userId !== userId)
     localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(updatedTransactions))
 
     // Reverse the customer update
     const customer = getCustomerById(transaction.customerId)
     if (customer) {
-      const customers = getCustomers()
-      const updatedCustomers = customers.map((c) => {
-        if (c.id === transaction.customerId) {
-          // Calculate totals from items if present, otherwise use top-level fields
+      const allStoredCustomersStored = localStorage.getItem(CUSTOMERS_KEY)
+      const allStoredCustomers: Customer[] = allStoredCustomersStored ? JSON.parse(allStoredCustomersStored) : []
+
+      const updatedCustomers = allStoredCustomers.map((c) => {
+        if (c.id === transaction.customerId && c.userId === userId) {
           const totalBottles = transaction.items
             ? transaction.items.reduce((sum, item) => sum + item.bottleCount, 0)
             : transaction.bottleCount
@@ -301,7 +354,7 @@ export const deleteTransaction = (transactionId: string): void => {
       localStorage.setItem(CUSTOMERS_KEY, JSON.stringify(updatedCustomers))
 
       // Sync customer update to cloud
-      const updatedCustomer = updatedCustomers.find(c => c.id === transaction.customerId)
+      const updatedCustomer = updatedCustomers.find(c => c.id === transaction.customerId && c.userId === userId)
       if (updatedCustomer) {
         syncCustomerUpdateToCloud(transaction.customerId, {
           bottlesOutstanding: updatedCustomer.bottlesOutstanding,
@@ -387,27 +440,32 @@ export const importData = (jsonString: string): { success: boolean; error?: stri
   if (typeof window === "undefined") return { success: false, error: "Window not defined" }
 
   try {
+    const userId = getCurrentUserId()
+    if (!userId) return { success: false, error: "Not authenticated" }
+
     const data = JSON.parse(jsonString)
 
-    // Basic validation
     if (!Array.isArray(data.customers) || !Array.isArray(data.transactions)) {
       return { success: false, error: "Invalid data format" }
     }
 
-    // Restore data
-    localStorage.setItem(CUSTOMERS_KEY, JSON.stringify(data.customers))
-    // We need to strip the customerName field from transactions before saving, 
-    // as getTransactions adds it dynamically
+    // Merge with existing data, but only for this user
+    const allStoredCustomersStored = localStorage.getItem(CUSTOMERS_KEY)
+    const allStoredCustomers: Customer[] = allStoredCustomersStored ? JSON.parse(allStoredCustomersStored) : []
+    const otherUsersCustomers = allStoredCustomers.filter(c => c.userId !== userId)
+
+    const newCustomers = data.customers.map((c: any) => ({ ...c, userId }))
+    localStorage.setItem(CUSTOMERS_KEY, JSON.stringify([...otherUsersCustomers, ...newCustomers]))
+
+    const allStoredTransactionsStored = localStorage.getItem(TRANSACTIONS_KEY)
+    const allStoredTransactions: Transaction[] = allStoredTransactionsStored ? JSON.parse(allStoredTransactionsStored) : []
+    const otherUsersTransactions = allStoredTransactions.filter(t => t.userId !== userId)
+
     const rawTransactions = data.transactions.map((t: any) => {
       const { customerName, ...rest } = t
-      return rest
+      return { ...rest, userId }
     })
-    localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(rawTransactions))
-
-    // Update version if needed
-    if (data.version) {
-      localStorage.setItem(VERSION_KEY, data.version)
-    }
+    localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify([...otherUsersTransactions, ...rawTransactions]))
 
     return { success: true }
   } catch (e) {

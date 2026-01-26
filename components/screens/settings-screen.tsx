@@ -89,21 +89,11 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
   const confirmImport = async () => {
     if (!importFile) return
 
-    // Use secure PIN verification
-    const { verifyCurrentUserPin } = await import("@/lib/auth-store")
-    const isValidPin = await verifyCurrentUserPin(pin)
-
-    if (!isValidPin) {
-      setError(t("incorrectPin"))
-      return
-    }
-
     const result = importData(importFile)
     if (result.success) {
       onNotifySuccess?.(t("importSuccess"))
       setShowImportConfirm(false)
       setImportFile(null)
-      setPin("")
       setError("")
       // Reload to reflect changes
       window.location.reload()
@@ -117,15 +107,6 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
   }
 
   const confirmRestore = async () => {
-    // Use secure PIN verification
-    const { verifyCurrentUserPin } = await import("@/lib/auth-store")
-    const isValidPin = await verifyCurrentUserPin(pin)
-
-    if (!isValidPin) {
-      setError(t("incorrectPin"))
-      return
-    }
-
     setIsRestoring(true)
     const result = await pullAllDataFromCloud()
     setIsRestoring(false)
@@ -146,7 +127,6 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
       if (importResult.success) {
         onNotifySuccess?.(t("restoreSuccess"))
         setShowRestoreConfirm(false)
-        setPin("")
         setError("")
         // Reload to reflect changes
         setTimeout(() => window.location.reload(), 1500)
@@ -224,10 +204,10 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
         <div className="bg-card/50 backdrop-blur-sm border border-border rounded-[2.5rem] p-8 shadow-premium space-y-6">
           <div className="flex items-center gap-6">
             <div className="w-20 h-20 rounded-[2rem] bg-secondary flex items-center justify-center font-black text-3xl text-primary shadow-inner-soft">
-              {user.adminName.charAt(0)}
+              {user.name.charAt(0)}
             </div>
             <div className="space-y-1">
-              <p className="font-black text-xl tracking-tight text-foreground">{user.adminName}</p>
+              <p className="font-black text-xl tracking-tight text-foreground">{user.name}</p>
               <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em]">@{user.username}</p>
               <div className="mt-2 inline-block px-3 py-1 bg-primary/10 text-primary text-[8px] font-black rounded-full uppercase tracking-widest">
                 Administrator
@@ -448,26 +428,12 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
               <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mt-2">{t("warningOverwrite")}</p>
             </div>
 
-            <div className="space-y-4">
-              <input
-                type="password"
-                value={pin}
-                onChange={(e) => {
-                  setPin(e.target.value)
-                  setError("")
-                }}
-                placeholder="PIN"
-                className="w-full px-6 py-4 bg-secondary/50 border border-border rounded-xl text-center text-lg font-black tracking-widest focus:ring-2 focus:ring-primary/20 transition-all"
-                autoFocus
-              />
-              {error && <p className="text-xs font-bold text-red-500 text-center">{error}</p>}
-            </div>
+            {error && <p className="text-xs font-bold text-red-500 text-center">{error}</p>}
 
             <div className="flex gap-3">
               <button
                 onClick={() => {
                   setShowRestoreConfirm(false)
-                  setPin("")
                   setError("")
                 }}
                 className="flex-1 py-4 bg-secondary text-foreground rounded-xl font-bold text-xs transition-all active:scale-95"
@@ -476,7 +442,7 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
               </button>
               <button
                 onClick={confirmRestore}
-                disabled={!pin || isRestoring}
+                disabled={isRestoring}
                 className="flex-1 py-4 bg-blue-500 text-white rounded-xl font-bold text-xs shadow-lg transition-all active:scale-95 disabled:opacity-50"
               >
                 {isRestoring ? t("restoring") : t("confirm")}
@@ -499,27 +465,13 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
               <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mt-2">{t("warningOverwrite")}</p>
             </div>
 
-            <div className="space-y-4">
-              <input
-                type="password"
-                value={pin}
-                onChange={(e) => {
-                  setPin(e.target.value)
-                  setError("")
-                }}
-                placeholder="PIN"
-                className="w-full px-6 py-4 bg-secondary/50 border border-border rounded-xl text-center text-lg font-black tracking-widest focus:ring-2 focus:ring-primary/20 transition-all"
-                autoFocus
-              />
-              {error && <p className="text-xs font-bold text-red-500 text-center">{error}</p>}
-            </div>
+            {error && <p className="text-xs font-bold text-red-500 text-center">{error}</p>}
 
             <div className="flex gap-3">
               <button
                 onClick={() => {
                   setShowImportConfirm(false)
                   setImportFile(null)
-                  setPin("")
                   setError("")
                 }}
                 className="flex-1 py-4 bg-secondary text-foreground rounded-xl font-bold text-xs transition-all active:scale-95"
@@ -528,8 +480,7 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
               </button>
               <button
                 onClick={confirmImport}
-                disabled={!pin}
-                className="flex-1 py-4 bg-orange-500 text-white rounded-xl font-bold text-xs shadow-lg transition-all active:scale-95 disabled:opacity-50"
+                className="flex-1 py-4 bg-orange-500 text-white rounded-xl font-bold text-xs shadow-lg transition-all active:scale-95"
               >
                 {t("confirm")}
               </button>
@@ -541,27 +492,31 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
       {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-end sm:items-center justify-center z-[100] animate-in fade-in duration-500 p-6">
-          <div className="w-full max-w-md bg-card/95 backdrop-blur-3xl rounded-[3.5rem] p-10 space-y-10 shadow-2xl border border-white/10 animate-in slide-in-from-bottom-12 duration-700 ease-out">
+          <div className="w-full max-w-md bg-card/95 backdrop-blur-3xl rounded-[3.5rem] p-10 space-y-8 shadow-2xl border border-white/10 animate-in slide-in-from-bottom-12 duration-700 ease-out">
             <div className="text-center space-y-4">
-              <div className="w-24 h-24 bg-destructive/10 rounded-[2.5rem] flex items-center justify-center mx-auto mb-4">
-                <LogoutIcon className="w-12 h-12 text-destructive" />
+              <div className="w-20 h-20 bg-destructive/5 rounded-[2.5rem] flex items-center justify-center mx-auto mb-2">
+                <LogoutIcon className="w-10 h-10 text-destructive/80" />
               </div>
-              <h3 className="text-3xl font-black uppercase tracking-tight text-foreground">{t("logout")}?</h3>
-              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.3em] opacity-60">{t("deleteConfirm")}</p>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black tracking-tight text-foreground">{t("logoutConfirmTitle")}</h3>
+                <p className="text-[13px] text-muted-foreground font-medium leading-relaxed px-4">
+                  {t("logoutConfirmMessage")}
+                </p>
+              </div>
             </div>
 
-            <div className="flex gap-4">
-              <button
-                onClick={() => setShowLogoutConfirm(false)}
-                className="flex-1 py-6 bg-secondary/50 text-foreground rounded-3xl font-black text-[10px] uppercase tracking-[0.2em] active:scale-95 transition-all hover:bg-secondary border border-border/50"
-              >
-                {t("cancel")}
-              </button>
+            <div className="flex flex-col gap-3">
               <button
                 onClick={confirmLogout}
-                className="flex-2 py-6 bg-destructive text-destructive-foreground rounded-3xl font-black text-[10px] uppercase tracking-[0.2em] shadow-premium active:scale-95 transition-all hover:brightness-110"
+                className="w-full py-5 bg-destructive text-destructive-foreground rounded-[1.5rem] font-black text-[14px] uppercase tracking-widest shadow-premium active:scale-[0.98] transition-all hover:brightness-110"
               >
                 {t("logout")}
+              </button>
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="w-full py-5 bg-secondary/50 text-foreground rounded-[1.5rem] font-black text-[14px] uppercase tracking-widest active:scale-[0.98] transition-all hover:bg-secondary border border-border/50"
+              >
+                {t("cancel")}
               </button>
             </div>
           </div>

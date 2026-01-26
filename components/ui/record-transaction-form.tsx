@@ -393,10 +393,22 @@ export default function RecordTransactionForm({ onTransactionComplete, onNavigat
                           <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{c.phone}</p>
                         </div>
                       </div>
-                      <div className={`text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest ${c.trustStatus === 'approved' ? 'bg-green-500/10 text-green-600' :
-                        c.trustStatus === 'pending' ? 'bg-yellow-500/10 text-yellow-600' : 'bg-red-500/10 text-red-600'
-                        }`}>
-                        {c.trustStatus}
+                      <div className="flex items-center gap-3">
+                        {c.bottlesOutstanding > 0 && (
+                          <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-xl animate-in fade-in zoom-in duration-500">
+                            <BottleIcon className="w-3 h-3 text-primary" />
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-xs font-black text-primary">{c.bottlesOutstanding}</span>
+                              <span className="text-[7px] font-black uppercase tracking-widest text-primary/60">{t("due") || "Due"}</span>
+                            </div>
+                          </div>
+                        )}
+                        {c.trustStatus !== 'pending' && (
+                          <div className={`text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest ${c.trustStatus === 'approved' ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'
+                            }`}>
+                            {c.trustStatus}
+                          </div>
+                        )}
                       </div>
                     </button>
                   ))

@@ -6,9 +6,10 @@ import ActivityItem from "@/components/ui/activity-item"
 import { BottleIcon, MoneyIcon, PeopleIcon, AddIcon, ChartIcon, SendIcon, ReceiveIcon, CloudIcon, SparkleIcon, XIcon, CopyIcon, CheckIcon, ArrowLeftIcon, AlertIcon } from "@/components/ui/icons"
 import { Button } from "@/components/ui/moving-border"
 import { getTransactionSummary, filterTransactionsByPeriod } from "@/lib/ai-service"
-import type { Language } from "@/lib/types"
+import type { Language, SafeUser } from "@/lib/types"
 
 interface DashboardScreenProps {
+  user: SafeUser
   onNavigateToIssue: () => void
   onNavigateToReturn: () => void
   onNavigateToReports: () => void
@@ -24,6 +25,7 @@ interface DashboardScreenProps {
 }
 
 export default function DashboardScreen({
+  user,
   onNavigateToIssue,
   onNavigateToReturn,
   onNavigateToReports,
@@ -87,8 +89,8 @@ export default function DashboardScreen({
               </div>
             </div>
             <div className="flex flex-col gap-1.5">
-              <h1 className="text-[1.75rem] font-black tracking-tight text-primary leading-none">Retra</h1>
-              <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-muted-foreground/60">Bottle Manager</span>
+              <h1 className="text-[1.75rem] font-black tracking-tight text-primary leading-none">{user.name}</h1>
+              <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-muted-foreground/60">Retra Ledger</span>
             </div>
           </div>
         </div>

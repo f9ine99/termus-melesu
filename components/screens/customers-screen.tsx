@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { getCustomers, deleteCustomer } from "@/lib/data-store"
-import { getStoredSession, verifyCurrentUserPin } from "@/lib/auth-store"
+import { getStoredSession } from "@/lib/auth-store"
 import { ArrowLeftIcon, UserPlusIcon, XIcon, SearchIcon, UndoIcon, TrashIcon } from "@/components/ui/icons"
 import ConfirmModal from "@/components/ui/confirm-modal"
 
@@ -30,12 +30,6 @@ export default function CustomersScreen({ onSelectCustomer, onBack, onRefresh, o
 
   const confirmDelete = async () => {
     if (!customerToDelete) return
-
-    const isValidPin = await verifyCurrentUserPin(pin)
-    if (!isValidPin) {
-      setError(t("incorrectPin"))
-      return
-    }
 
     deleteCustomer(customerToDelete)
     onNotifySuccess?.(t("customerDeleted"))
@@ -162,17 +156,6 @@ export default function CustomersScreen({ onSelectCustomer, onBack, onRefresh, o
             </div>
 
             <div className="space-y-4">
-              <input
-                type="password"
-                value={pin}
-                onChange={(e) => {
-                  setPin(e.target.value)
-                  setError("")
-                }}
-                placeholder="PIN"
-                className="w-full px-6 py-4 bg-secondary/50 border border-border rounded-xl text-center text-lg font-black tracking-widest focus:ring-2 focus:ring-primary/20 transition-all"
-                autoFocus
-              />
               {error && <p className="text-xs font-bold text-red-500 text-center">{error}</p>}
             </div>
 
@@ -189,7 +172,6 @@ export default function CustomersScreen({ onSelectCustomer, onBack, onRefresh, o
               </button>
               <button
                 onClick={confirmDelete}
-                disabled={!pin}
                 className="flex-1 py-4 bg-red-500 text-white rounded-xl font-bold text-xs shadow-lg transition-all active:scale-95 disabled:opacity-50"
               >
                 {t("confirm")}

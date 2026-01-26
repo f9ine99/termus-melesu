@@ -177,6 +177,7 @@ export default function DashboardLayout({ user, onLogout }: DashboardLayoutProps
         return (
           <DashboardScreen
             key={`dashboard-${dataVersion}`}
+            user={user}
             onNavigateToIssue={() => navigateTo("transaction", { type: "issue" })}
             onNavigateToReturn={() => navigateTo("transaction", { type: "return" })}
             onNavigateToReports={() => navigateTo("reports")}

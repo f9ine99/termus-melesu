@@ -11,12 +11,12 @@ interface LockoutState {
 }
 
 // SHA-256 hash function with fallback for non-secure contexts (mobile/IP access)
-export async function hashPin(pin: string): Promise<string> {
+export async function hashPassword(password: string): Promise<string> {
     // Try native Web Crypto API first (requires secure context: HTTPS or localhost)
     if (typeof crypto !== 'undefined' && crypto.subtle && crypto.subtle.digest) {
         try {
             const encoder = new TextEncoder()
-            const data = encoder.encode(pin)
+            const data = encoder.encode(password)
             const hashBuffer = await crypto.subtle.digest('SHA-256', data)
             const hashArray = Array.from(new Uint8Array(hashBuffer))
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
@@ -26,7 +26,7 @@ export async function hashPin(pin: string): Promise<string> {
     }
 
     // Fallback: Pure JS SHA-256 implementation
-    return sha256(pin)
+    return sha256(password)
 }
 
 /**
@@ -45,7 +45,7 @@ function sha256(ascii: string): string {
     let result = '';
 
     const words: any[] = [];
-    const asciiBitLength = ascii[lengthProperty] * 8;
+    const asciiBitLength = (ascii as any)[lengthProperty] * 8;
 
     /* caching results of Math.pow(x, 1/y) is faster than calling it every time */
     let hash: any[] = [];
@@ -72,9 +72,9 @@ function sha256(ascii: string): string {
     }
 
     ascii += '\x80'; // Append '1' bit (plus zero padding)
-    while (ascii[lengthProperty] % 64 - 56) ascii += '\x00'; // More zero padding
+    while ((ascii as any)[lengthProperty] % 64 - 56) ascii += '\x00'; // More zero padding
 
-    for (i = 0; i < ascii[lengthProperty]; i++) {
+    for (i = 0; i < (ascii as any)[lengthProperty]; i++) {
         j = ascii.charCodeAt(i);
         if (j >> 8) return ''; // ASCII check: only accept characters in range 0-255
         words[i >> 2] |= j << ((3 - i % 4) * 8);
@@ -124,9 +124,9 @@ function sha256(ascii: string): string {
     return result;
 }
 
-// Verify PIN against stored hash
-export async function verifyPin(pin: string, storedHash: string): Promise<boolean> {
-    const inputHash = await hashPin(pin)
+// Verify password against stored hash
+export async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
+    const inputHash = await hashPassword(password)
     return inputHash === storedHash
 }
 

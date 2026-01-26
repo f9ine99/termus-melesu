@@ -12,11 +12,14 @@ export default function Home() {
 
   useEffect(() => {
     // Check for stored session
-    const session = getStoredSession()
-    if (session?.isLoggedIn && session.user) {
-      setUser(session.user)
+    const checkSession = async () => {
+      const session = await getStoredSession()
+      if (session?.isLoggedIn && session.user) {
+        setUser(session.user)
+      }
+      setMounted(true)
     }
-    setMounted(true)
+    checkSession()
   }, [])
 
   // Wait for hydration to avoid flash
@@ -30,5 +33,14 @@ export default function Home() {
   }
 
   // Show dashboard if authenticated
-  return <DashboardLayout user={user} onLogout={() => setUser(null)} />
+  return (
+    <DashboardLayout
+      user={user}
+      onLogout={async () => {
+        const { logoutUser } = await import("@/lib/auth-store")
+        await logoutUser()
+        setUser(null)
+      }}
+    />
+  )
 }

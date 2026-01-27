@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
 import { useColorTheme, type ColorTheme } from "@/components/color-theme-provider"
-import { logoutUser } from "@/lib/auth-store"
+import { logoutUser, updateUserName, updateUserPassword } from "@/lib/auth-store"
 import { exportData, importData, getCustomers, getTransactions } from "@/lib/data-store"
 import { pushAllDataToCloud, pullAllDataFromCloud, isSupabaseConfigured } from "@/lib/sync-service"
 import type { SafeUser } from "@/lib/types"
@@ -38,6 +38,10 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
   const [isSyncing, setIsSyncing] = useState(false)
   const [isRestoring, setIsRestoring] = useState(false)
   const [showRestoreConfirm, setShowRestoreConfirm] = useState(false)
+  const [showAccountModal, setShowAccountModal] = useState(false)
+  const [newName, setNewName] = useState(user.name)
+  const [newPassword, setNewPassword] = useState("")
+  const [isUpdating, setIsUpdating] = useState(false)
 
   // Avoid hydration mismatch
   useEffect(() => {
@@ -175,6 +179,37 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
 
   const supabaseReady = isSupabaseConfigured()
 
+  const handleUpdateName = async () => {
+    if (!newName.trim()) return
+    setIsUpdating(true)
+    const result = await updateUserName(newName)
+    setIsUpdating(false)
+    if (result.success) {
+      onNotifySuccess?.(t("updateSuccess"))
+      // Keep modal open or close? User might want to change password too.
+      // But name change triggers reload, so it will close anyway.
+      setTimeout(() => window.location.reload(), 1000)
+    } else {
+      setError(result.error || t("updateError"))
+    }
+  }
+
+  const handleUpdatePassword = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      setError("Password must be at least 6 characters")
+      return
+    }
+    setIsUpdating(true)
+    const result = await updateUserPassword(newPassword)
+    setIsUpdating(false)
+    if (result.success) {
+      onNotifySuccess?.(t("updateSuccess"))
+      setNewPassword("")
+    } else {
+      setError(result.error || t("updateError"))
+    }
+  }
+
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark")
   }
@@ -208,7 +243,7 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
               {user.name.charAt(0)}
             </div>
             <div className="space-y-1">
-              <p className="font-black text-xl tracking-tight text-foreground">{user.name}</p>
+              <p className="font-black text-xl tracking-tight text-foreground">{user.name.length > 10 ? `${user.name.slice(0, 10)}...` : user.name}</p>
               <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em]">@{user.username}</p>
               <div className="mt-2 inline-block px-3 py-1 bg-primary/10 text-primary text-[8px] font-black rounded-full uppercase tracking-widest">
                 Administrator
@@ -232,6 +267,11 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
                 label={t("language")}
                 value={language === "en" ? "English" : "አማርኛ"}
                 onClick={onToggleLanguage}
+              />
+              <SettingsItem
+                icon={<LockIcon className="w-4 h-4" />}
+                label={t("manageAccount")}
+                onClick={() => setShowAccountModal(true)}
               />
 
               {/* Theme Selector */}
@@ -425,6 +465,90 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
             </div>
           </div>
         </div>
+
+        {/* Manage Account Modal */}
+        {showAccountModal && (
+          <div className="fixed inset-0 bg-background/90 backdrop-blur-2xl flex items-center justify-center z-[100] animate-in fade-in duration-300 p-4">
+            <div className="w-full max-w-sm bg-card border border-border rounded-[2.5rem] p-6 space-y-4 shadow-2xl animate-in zoom-in-95 duration-300 h-fit overflow-hidden">
+              <div className="space-y-1 text-center">
+                <div className="w-12 h-12 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-lg">
+                  <SettingsIcon className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-black tracking-tight text-foreground">{t("manageAccount")}</h3>
+              </div>
+
+              <div className="space-y-4">
+                {/* Name Section */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 px-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{t("newName")}</label>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="text"
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      placeholder={t("enterNewName")}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border/50 rounded-xl text-sm font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                    />
+                    <button
+                      onClick={handleUpdateName}
+                      disabled={isUpdating || !newName.trim() || newName === user.name}
+                      className="w-full py-3 bg-primary text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg transition-all active:scale-95 disabled:opacity-50"
+                    >
+                      {isUpdating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : t("confirm")}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="h-px bg-border/50" />
+
+                {/* Password Section */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 px-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{t("newPassword")}</label>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder={t("enterNewPassword")}
+                      className="w-full px-4 py-3 bg-secondary/50 border border-border/50 rounded-xl text-sm font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                    />
+                    <button
+                      onClick={handleUpdatePassword}
+                      disabled={isUpdating || !newPassword || newPassword.length < 6}
+                      className="w-full py-3 bg-primary text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg transition-all active:scale-95 disabled:opacity-50"
+                    >
+                      {isUpdating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : t("confirm")}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {error && (
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+                  <p className="text-[9px] font-black text-red-500 text-center uppercase tracking-widest">{error}</p>
+                </div>
+              )}
+
+              <button
+                onClick={() => {
+                  setShowAccountModal(false)
+                  setError("")
+                  setNewName(user.name)
+                  setNewPassword("")
+                }}
+                className="w-full py-4 bg-secondary text-foreground rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 border border-border/50"
+              >
+                {t("back")}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Info Footer */}
         <div className="text-center space-y-2 pt-4">

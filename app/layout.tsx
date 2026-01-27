@@ -14,10 +14,6 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
-      {
         url: "/icon-192.png",
         type: "image/png",
         sizes: "192x192",
@@ -28,7 +24,13 @@ export const metadata: Metadata = {
         sizes: "512x512",
       },
     ],
-    apple: "/apple-icon.png",
+    apple: [
+      {
+        url: "/apple-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
   },
   manifest: "/manifest.json",
   appleWebApp: {

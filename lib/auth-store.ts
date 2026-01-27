@@ -1,6 +1,7 @@
 // Client-side auth state management using Supabase Auth
 import { supabase, isSupabaseConfigured } from "./supabase"
 import type { SafeUser } from "./types"
+import { APP_CONFIG } from "./config"
 
 export interface AuthStore {
   user: SafeUser | null
@@ -125,6 +126,65 @@ export const logoutUser = async (): Promise<void> => {
   await supabase.auth.signOut()
 }
 
+
+// Update user name in Supabase
+export const updateUserName = async (name: string): Promise<AuthResult> => {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { success: false, error: "Supabase not configured" }
+  }
+
+  try {
+    const { data, error } = await supabase.auth.updateUser({
+      data: {
+        adminName: name,
+        full_name: name,
+      },
+    })
+
+    if (error) throw error
+
+    if (data.user) {
+      return {
+        success: true,
+        user: {
+          id: data.user.id,
+          username: data.user.email || data.user.id,
+          name: name,
+          createdAt: data.user.created_at,
+        },
+        message: "Name updated successfully",
+      }
+    }
+    return { success: false, error: "Failed to update name" }
+  } catch (e: any) {
+    console.error("Name update failed:", e)
+    return { success: false, error: e.message || "Failed to update name" }
+  }
+}
+
+// Update user password in Supabase
+export const updateUserPassword = async (password: string): Promise<AuthResult> => {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { success: false, error: "Supabase not configured" }
+  }
+
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password: password,
+    })
+
+    if (error) throw error
+
+    return {
+      success: true,
+      message: "Password updated successfully",
+    }
+  } catch (e: any) {
+    console.error("Password update failed:", e)
+    return { success: false, error: e.message || "Failed to update password" }
+  }
+}
+
 // Social Sign-In with Supabase
 export const signInWithSocial = async (provider: "google" | "apple"): Promise<void> => {
   if (!isSupabaseConfigured() || !supabase) return
@@ -133,7 +193,7 @@ export const signInWithSocial = async (provider: "google" | "apple"): Promise<vo
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: APP_CONFIG.SITE_URL,
       },
     })
     if (error) throw error

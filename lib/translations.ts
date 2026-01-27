@@ -227,6 +227,10 @@ export const translations = {
         mediumRisk: "Medium Risk",
         highRisk: "High Risk",
         filterByInactivity: "Filter by days of inactivity",
+        termsOfService: "Terms of Service",
+        privacyPolicy: "Privacy Policy",
+        legal: "Legal",
+        byContinuing: "By continuing, I have read and agree with the {{terms}} and {{privacy}}",
     },
     am: {
         // Navigation & General
@@ -455,6 +459,10 @@ export const translations = {
         mediumRisk: "መካከለኛ ስጋት",
         highRisk: "ከፍተኛ ስጋት",
         filterByInactivity: "ባልተንቀሳቀሱባቸው ቀናት ይለዩ",
+        termsOfService: "የአጠቃቀም ደንቦች",
+        privacyPolicy: "የግላዊነት ፖሊሲ",
+        legal: "ህጋዊ",
+        byContinuing: "በመቀጠል፣ {{terms}} እና {{privacy}} አንብቤ ተስማምቻለሁ",
     }
 }
 

@@ -244,7 +244,7 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
             </div>
             <div className="space-y-1">
               <p className="font-black text-xl tracking-tight text-foreground">{user.name.length > 10 ? `${user.name.slice(0, 10)}...` : user.name}</p>
-              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em]">@{user.username}</p>
+              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em]">{user.username}</p>
               <div className="mt-2 inline-block px-3 py-1 bg-primary/10 text-primary text-[8px] font-black rounded-full uppercase tracking-widest">
                 Administrator
               </div>

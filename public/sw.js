@@ -1,7 +1,6 @@
 const CACHE_NAME = 'retra-cache-v4';
 const ASSETS_TO_CACHE = [
     '/',
-    '/icon.svg',
     '/icon-192.png',
     '/icon-512.png',
     '/manifest.json'

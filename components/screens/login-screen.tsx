@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { authenticateUser, registerUser, isLocked, getRemainingLockTime, signInWithSocial } from "@/lib/auth-store"
 import type { SafeUser } from "@/lib/types"
-import { AppleIcon, GoogleIcon, MailIcon, ShieldCheckIcon, CheckIcon, BottleIcon, EyeIcon, EyeOffIcon, AlertIcon, InfoIcon } from "@/components/ui/icons"
+import { AppleIcon, GoogleIcon, MailIcon, ShieldCheckIcon, CheckIcon, BottleIcon, EyeIcon, EyeOffIcon, AlertIcon, InfoIcon, UserIcon } from "@/components/ui/icons"
 import { NotificationToast } from "@/components/ui/notification-toast"
 import { cn } from "@/lib/utils"
 
@@ -205,14 +205,11 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             {mode === "register" && (
               <div className="relative animate-in slide-in-from-top-2 duration-300">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" />
-                  </svg>
+                  <UserIcon className="w-5 h-5" />
                 </div>
                 <input
                   type="text"
-                  placeholder="Name"
+                  placeholder="username"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={isLoading || isSuccess}

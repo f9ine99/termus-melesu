@@ -7,7 +7,8 @@ import { logoutUser } from "@/lib/auth-store"
 import { exportData, importData, getCustomers, getTransactions } from "@/lib/data-store"
 import { pushAllDataToCloud, pullAllDataFromCloud, isSupabaseConfigured } from "@/lib/sync-service"
 import type { SafeUser } from "@/lib/types"
-import { ArrowLeftIcon, LogoutIcon, SettingsIcon, PeopleIcon, ChartIcon, SunIcon, MoonIcon, CheckIcon, DownloadIcon, UploadIcon, SendIcon, LockIcon, CloudIcon } from "@/components/ui/icons"
+import { ArrowLeftIcon, LogoutIcon, SettingsIcon, PeopleIcon, ChartIcon, SunIcon, MoonIcon, CheckIcon, DownloadIcon, UploadIcon, SendIcon, LockIcon, CloudIcon, ShieldCheckIcon } from "@/components/ui/icons"
+import { LEGAL_CONFIG } from "@/lib/config"
 
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt"
 
@@ -383,6 +384,23 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
                 </div>
                 <ArrowLeftIcon className="w-4 h-4 text-muted-foreground/30 rotate-180" />
               </button>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-1">{t("legal")}</h3>
+            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-[2.5rem] overflow-hidden shadow-soft">
+              <SettingsItem
+                icon={<ShieldCheckIcon className="w-4 h-4" />}
+                label={t("termsOfService")}
+                onClick={() => window.open(LEGAL_CONFIG.TERMS_OF_SERVICE_URL, "_blank", "noopener,noreferrer")}
+              />
+              <SettingsItem
+                icon={<LockIcon className="w-4 h-4" />}
+                label={t("privacyPolicy")}
+                onClick={() => window.open(LEGAL_CONFIG.PRIVACY_POLICY_URL, "_blank", "noopener,noreferrer")}
+                isLast
+              />
             </div>
           </div>
 

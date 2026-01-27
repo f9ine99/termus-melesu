@@ -89,7 +89,7 @@ export default function DashboardScreen({
               </div>
             </div>
             <div className="flex flex-col gap-1.5">
-              <h1 className="text-[1.75rem] font-black tracking-tight text-primary leading-none">{user.name}</h1>
+              <h1 className="text-[1.75rem] font-black tracking-tight text-primary leading-none">{user.name.length > 6 ? `${user.name.slice(0, 6)}...` : user.name}</h1>
               <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-muted-foreground/60">Retra Ledger</span>
             </div>
           </div>

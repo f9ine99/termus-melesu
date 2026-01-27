@@ -231,6 +231,16 @@ export const translations = {
         privacyPolicy: "Privacy Policy",
         legal: "Legal",
         byContinuing: "By continuing, I have read and agree with the {{terms}} and {{privacy}}",
+        changeName: "Change Name",
+        changePassword: "Change Password",
+        newName: "New Name",
+        newPassword: "New Password",
+        updateSuccess: "Profile updated successfully",
+        updateError: "Failed to update profile",
+        enterNewName: "Enter new name...",
+        enterNewPassword: "Enter new password...",
+        saveChanges: "Save Changes",
+        manageAccount: "Manage Account",
     },
     am: {
         // Navigation & General
@@ -463,6 +473,16 @@ export const translations = {
         privacyPolicy: "የግላዊነት ፖሊሲ",
         legal: "ህጋዊ",
         byContinuing: "በመቀጠል፣ {{terms}} እና {{privacy}} አንብቤ ተስማምቻለሁ",
+        changeName: "ስም ቀይር",
+        changePassword: "የይለፍ ቃል ቀይር",
+        newName: "አዲስ ስም",
+        newPassword: "አዲስ የይለፍ ቃል",
+        updateSuccess: "መገለጫው በተሳካ ሁኔታ ተዘምኗል",
+        updateError: "መገለጫውን ማዘመን አልተቻለም",
+        enterNewName: "አዲስ ስም ያስገቡ...",
+        enterNewPassword: "አዲስ የይለፍ ቃል ያስገቡ...",
+        saveChanges: "ለውጦችን አስቀምጥ",
+        manageAccount: "መገለጫን አስተዳድር",
     }
 }
 

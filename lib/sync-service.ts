@@ -474,18 +474,24 @@ export async function pushAllDataToCloud(customers: Customer[], transactions: Tr
 export async function pullAllDataFromCloud(): Promise<{ success: boolean; customers?: Customer[]; transactions?: Transaction[]; error?: string }> {
     if (!supabase) return { success: false, error: 'Supabase not configured' }
 
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) return { success: false, error: 'Not authenticated' }
+    const userId = session.user.id
+
     try {
-        // 1. Fetch all customers
+        // 1. Fetch all customers for this user
         const { data: customersData, error: customersError } = await supabase
             .from('customers')
             .select('*')
+            .eq('user_id', userId)
 
         if (customersError) throw customersError
 
-        // 2. Fetch all transactions
+        // 2. Fetch all transactions for this user
         const { data: transactionsData, error: transactionsError } = await supabase
             .from('transactions')
             .select('*')
+            .eq('user_id', userId)
 
         if (transactionsError) throw transactionsError
 
@@ -494,6 +500,7 @@ export async function pullAllDataFromCloud(): Promise<{ success: boolean; custom
 
         const customers: Customer[] = (customersData || []).map(c => ({
             id: c.id,
+            userId: c.user_id,
             name: c.name,
             phone: c.phone,
             address: c.address,
@@ -506,6 +513,7 @@ export async function pullAllDataFromCloud(): Promise<{ success: boolean; custom
 
         const transactions: Transaction[] = (transactionsData || []).map(t => ({
             id: t.id,
+            userId: t.user_id,
             customerId: t.customer_id,
             type: t.type as TransactionType,
             category: t.category as BottleCategory,

@@ -130,6 +130,23 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
   if (!mounted) return null
 
+  const { LEGAL_CONFIG } = require("@/lib/config")
+  const { translations } = require("@/lib/translations")
+  const lang = "en" // Default for login screen if not yet selected, or we could detect browser lang
+  const t_login = (key: string, params?: any) => {
+    let text = (translations as any)[lang][key] || key
+    if (params) {
+      Object.keys(params).forEach(k => {
+        text = text.replace(`{{${k}}}`, params[k])
+      })
+    }
+    return text
+  }
+
+  const openLegal = (url: string) => {
+    window.open(url, "_blank", "noopener,noreferrer")
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden">
       {/* Floating Notifications */}
@@ -296,8 +313,37 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         {/* Footer */}
         <div className="pt-4 text-center">
           <p className="text-[12px] text-muted-foreground leading-relaxed">
-            By clicking "Continue", I have read and agree<br />
-            with the <button className="underline font-bold text-foreground">Term Sheet</button>, <button className="underline font-bold text-foreground">Privacy Policy</button>
+            {(() => {
+              const text = t_login("byContinuing")
+              const parts = text.split(/(\{\{terms\}\}|\{\{privacy\}\})/)
+              return parts.map((part: string, i: number) => {
+                if (part === "{{terms}}") {
+                  return (
+                    <button
+                      key="terms"
+                      type="button"
+                      onClick={() => openLegal(LEGAL_CONFIG.TERMS_OF_SERVICE_URL)}
+                      className="underline font-bold text-foreground hover:text-primary transition-colors"
+                    >
+                      {t_login("termsOfService")}
+                    </button>
+                  )
+                }
+                if (part === "{{privacy}}") {
+                  return (
+                    <button
+                      key="privacy"
+                      type="button"
+                      onClick={() => openLegal(LEGAL_CONFIG.PRIVACY_POLICY_URL)}
+                      className="underline font-bold text-foreground hover:text-primary transition-colors"
+                    >
+                      {t_login("privacyPolicy")}
+                    </button>
+                  )
+                }
+                return part
+              })
+            })()}
           </p>
         </div>
 

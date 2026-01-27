@@ -306,60 +306,68 @@ export default function DashboardLayout({ user, onLogout }: DashboardLayoutProps
 
       {/* Modern Bottom Navigation Bar */}
       <div className="fixed bottom-0 left-0 right-0 z-40 px-6 pb-8 pt-4 bg-gradient-to-t from-background via-background/95 to-transparent pointer-events-none">
-        <nav className="max-w-md mx-auto bg-card/40 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-2 flex items-center justify-between shadow-[0_20px_50px_rgba(0,0,0,0.1)] pointer-events-auto relative">
-          {/* Premium Border Glow */}
-          <div className="absolute inset-0 rounded-[2.5rem] border border-primary/10 pointer-events-none" />
-
-          <NavTab
-            icon={<GridIcon className="w-5 h-5" />}
-            label={t("dashboard")}
-            active={currentScreen.screen === "dashboard"}
-            onClick={() => navigateTo("dashboard")}
-          />
-          <NavTab
-            icon={<PeopleIcon className="w-5 h-5" />}
-            label={t("customers")}
-            active={currentScreen.screen === "customers" || currentScreen.screen === "customer-detail"}
-            onClick={() => navigateTo("customers")}
-          />
-
-          {/* Central Record Button - Enhanced Design */}
-          <div className="relative -mt-12 group flex flex-col items-center gap-1.5">
-            {/* Multi-layered Glow */}
-            <div className="absolute top-0 bg-primary/30 rounded-full blur-2xl group-hover:bg-primary/40 transition-all duration-700 scale-150 w-16 h-16 opacity-50" />
-            <div className="absolute top-0 bg-primary/20 rounded-full blur-md group-hover:bg-primary/30 transition-all duration-500 scale-110 w-16 h-16" />
-
-            <button
-              onClick={() => navigateTo("transaction")}
-              className={`relative w-15 h-15 rounded-full flex items-center justify-center transition-all duration-500 shadow-[0_10px_25px_-5px_rgba(var(--primary),0.4)] active:scale-90 ${currentScreen.screen === "transaction"
-                ? "bg-foreground text-background rotate-45"
-                : "bg-primary text-primary-foreground hover:scale-110 hover:shadow-[0_15px_30px_-5px_rgba(var(--primary),0.5)]"
-                }`}
-            >
-              <AddIcon className="w-7 h-7" />
-
-              {/* Inner Shine Effect */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-            </button>
-
-            <span className={`text-[9px] font-black uppercase tracking-[0.15em] transition-all duration-500 ${currentScreen.screen === "transaction" ? "text-foreground translate-y-[-2px]" : "text-muted-foreground/60"}`}>
-              {t("recordTransaction")?.split(' ')[0] || "Record"}
-            </span>
+        <div className="max-w-md mx-auto relative pointer-events-auto">
+          {/* Curved Background SVG */}
+          <div className="absolute inset-0 -z-10 h-[72px] top-0">
+            <svg width="100%" height="100%" viewBox="0 0 400 72" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" className="drop-shadow-[0_-10px_25px_rgba(0,0,0,0.15)]">
+              {/* Main Background with Clean Notch */}
+              <path
+                d="M0 36C0 16.1177 16.1177 0 36 0H145C155 0 160 5 165 12C175 28 185 45 200 45C215 45 225 28 235 12C240 5 245 0 255 0H364C383.882 0 400 16.1177 400 36V36C400 55.8823 383.882 72 364 72H36C16.1177 72 0 55.8823 0 36V36Z"
+                className="fill-card/90"
+              />
+              {/* Minimalist Top Border */}
+              <path
+                d="M0 36C0 16.1177 16.1177 0 36 0H145C155 0 160 5 165 12C175 28 185 45 200 45C215 45 225 28 235 12C240 5 245 0 255 0H364C383.882 0 400 16.1177 400 36"
+                className="stroke-white/10"
+                strokeWidth="1"
+                strokeLinecap="round"
+              />
+            </svg>
+            <div className="absolute inset-0 backdrop-blur-2xl -z-20 rounded-[2.5rem] overflow-hidden" />
           </div>
 
-          <NavTab
-            icon={<ChartIcon className="w-5 h-5" />}
-            label={t("reports")}
-            active={currentScreen.screen === "reports" || currentScreen.screen === "ai-insights"}
-            onClick={() => navigateTo("reports")}
-          />
-          <NavTab
-            icon={<SettingsIcon className="w-5 h-5" />}
-            label={t("settings")}
-            active={currentScreen.screen === "settings"}
-            onClick={() => navigateTo("settings")}
-          />
-        </nav>
+          <nav className="flex items-center justify-between px-8 relative h-[72px]">
+
+            <NavTab
+              icon={<GridIcon className="w-6 h-6" />}
+              active={currentScreen.screen === "dashboard"}
+              onClick={() => navigateTo("dashboard")}
+            />
+            <NavTab
+              icon={<PeopleIcon className="w-6 h-6" />}
+              active={currentScreen.screen === "customers" || currentScreen.screen === "customer-detail"}
+              onClick={() => navigateTo("customers")}
+            />
+
+            {/* Central Record Button - Enhanced Design */}
+            <div className="relative -mt-10 group flex flex-col items-center">
+              {/* Subtle Outer Glow */}
+              <div className="absolute top-0 bg-primary/20 rounded-full blur-2xl group-hover:bg-primary/30 transition-all duration-700 scale-150 w-16 h-16 opacity-30" />
+
+              <button
+                onClick={() => navigateTo("transaction")}
+                className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 shadow-[0_15px_35px_-5px_rgba(var(--primary),0.4)] active:scale-90 ${currentScreen.screen === "transaction"
+                  ? "bg-foreground text-background rotate-45"
+                  : "bg-primary text-primary-foreground hover:scale-105"
+                  }`}
+              >
+                <AddIcon className="w-8 h-8" />
+                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              </button>
+            </div>
+
+            <NavTab
+              icon={<ChartIcon className="w-6 h-6" />}
+              active={currentScreen.screen === "reports" || currentScreen.screen === "ai-insights"}
+              onClick={() => navigateTo("reports")}
+            />
+            <NavTab
+              icon={<SettingsIcon className="w-6 h-6" />}
+              active={currentScreen.screen === "settings"}
+              onClick={() => navigateTo("settings")}
+            />
+          </nav>
+        </div>
       </div>
 
       {/* Global Notification - Modern & Professional (Moved outside animated container) */}
@@ -376,25 +384,20 @@ export default function DashboardLayout({ user, onLogout }: DashboardLayoutProps
   )
 }
 
-function NavTab({ icon, label, onClick, active }: { icon: any, label: string, onClick: () => void, active: boolean }) {
+function NavTab({ icon, onClick, active }: { icon: any, onClick: () => void, active: boolean }) {
   return (
     <button
       onClick={onClick}
-      className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 transition-all duration-500 relative group/tab ${active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+      className={`flex-1 flex flex-col items-center justify-center py-4 transition-all duration-500 relative group/tab ${active ? "text-primary" : "text-muted-foreground hover:text-foreground"
         }`}
     >
       <div className={`transition-all duration-500 z-10 ${active ? "translate-y-[-2px] scale-110" : "group-hover/tab:translate-y-[-1px]"}`}>
         {icon}
       </div>
 
-      <span className={`text-[8px] font-black uppercase tracking-[0.2em] transition-all duration-500 z-10 ${active ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
-        }`}>
-        {label}
-      </span>
-
       {/* Active Dot */}
       {active && (
-        <div className="absolute bottom-1 w-1 h-1 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary),0.8)] animate-spring-up" />
+        <div className="absolute bottom-2 w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary),0.8)] animate-spring-up" />
       )}
     </button>
   )

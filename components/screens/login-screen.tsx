@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { authenticateUser, registerUser, isLocked, getRemainingLockTime, signInWithSocial } from "@/lib/auth-store"
 import type { SafeUser } from "@/lib/types"
-import { AppleIcon, GoogleIcon, MailIcon, ShieldCheckIcon, CheckIcon, BottleIcon, EyeIcon, EyeOffIcon, AlertIcon, InfoIcon, UserIcon } from "@/components/ui/icons"
+import { GoogleIcon, MailIcon, ShieldCheckIcon, CheckIcon, BottleIcon, EyeIcon, EyeOffIcon, AlertIcon, InfoIcon, UserIcon } from "@/components/ui/icons"
 import { NotificationToast } from "@/components/ui/notification-toast"
 import { cn } from "@/lib/utils"
 
@@ -288,14 +288,6 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           </button>
 
           <div className="grid grid-cols-1 gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => signInWithSocial("apple")}
-              className="w-full flex items-center justify-center gap-3 py-3.5 bg-card border border-border rounded-[1rem] font-bold text-[15px] hover:bg-secondary transition-all"
-            >
-              <AppleIcon className="w-5 h-5" />
-              <span>Sign in with Apple</span>
-            </button>
             <button
               type="button"
               onClick={() => signInWithSocial("google")}

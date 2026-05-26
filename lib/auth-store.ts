@@ -186,7 +186,7 @@ export const updateUserPassword = async (password: string): Promise<AuthResult> 
 }
 
 // Social Sign-In with Supabase
-export const signInWithSocial = async (provider: "google" | "apple"): Promise<void> => {
+export const signInWithSocial = async (provider: "google"): Promise<void> => {
   if (!isSupabaseConfigured() || !supabase) return
 
   try {

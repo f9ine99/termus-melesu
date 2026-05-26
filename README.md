@@ -3,7 +3,7 @@
 
 [![Status](https://img.shields.io/badge/Status-Production--Ready-brightgreen)]()
 [![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20Mobile%20Optimized-blue)]()
-[![Framework](https://img.shields.io/badge/Framework-Next.js%2015-black)]()
+[![Framework](https://img.shields.io/badge/Framework-Next.js%2016-black)]()
 
 ## Overview
 **Retra** (formerly Termus Melesu) is a dedicated inventory and relationship management platform designed to mitigate bottle loss in small retail environments. The system streamlines the tracking of returnable glass bottles, ensuring financial accountability while preserving customer loyalty through a sophisticated trust-based profile system.
@@ -53,7 +53,7 @@
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18 or higher
+- Node.js 20.9 or higher
 - pnpm (recommended)
 
 ### Installation

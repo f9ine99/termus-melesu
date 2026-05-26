@@ -29,6 +29,8 @@ ts-debug.log*
 # vercel
 .vercel
 
+.env
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

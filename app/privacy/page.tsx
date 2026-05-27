@@ -37,9 +37,9 @@ export default function PrivacyPage() {
                             Your privacy is our priority. This policy explains how we collect, use, and protect your business data within Termus Melesu.
                         </p>
                         <div className="pt-2 flex items-center gap-4 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                            <span>Version 1.0.0</span>
+                            <span>Version 1.1.0</span>
                             <span className="w-1 h-1 bg-border rounded-full" />
-                            <span>Updated Jan 27, 2026</span>
+                            <span>Updated May 27, 2026</span>
                         </div>
                     </div>
                 </header>
@@ -102,7 +102,8 @@ export default function PrivacyPage() {
                                         { title: "Service Delivery", desc: "Managing your digital ledger and inventory." },
                                         { title: "Cloud Sync", desc: "Synchronizing data across your authorized devices." },
                                         { title: "Analytics", desc: "Generating business insights and reports." },
-                                        { title: "Support", desc: "Responding to your inquiries and technical issues." }
+                                        { title: "Support", desc: "Responding to your inquiries and technical issues." },
+                                        { title: "Compliance", desc: "Documenting legal consent and honoring data requests." }
                                     ].map((item, i) => (
                                         <div key={i} className="p-4 bg-secondary/20 rounded-2xl border border-border/50">
                                             <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">{item.title}</p>
@@ -142,9 +143,19 @@ export default function PrivacyPage() {
                                 <p className="text-muted-foreground leading-relaxed font-medium">
                                     We may utilize trusted third-party services to facilitate our operations:
                                 </p>
-                                <p className="text-muted-foreground leading-relaxed font-medium">
-                                    For example, we use <span className="text-foreground font-bold">Supabase</span> for secure cloud storage and synchronization. These partners are prohibited from using your information for any purpose other than providing services to us.
-                                </p>
+                                <div className="space-y-3">
+                                    <p className="text-muted-foreground leading-relaxed font-medium">
+                                        We use the following processors to deliver the service:
+                                    </p>
+                                    <ul className="list-none space-y-2 pl-0">
+                                        <li className="text-muted-foreground font-medium">- <span className="text-foreground font-bold">Supabase</span>: authentication and cloud database synchronization.</li>
+                                        <li className="text-muted-foreground font-medium">- <span className="text-foreground font-bold">Vercel Analytics</span>: product usage analytics.</li>
+                                        <li className="text-muted-foreground font-medium">- <span className="text-foreground font-bold">Groq</span>: AI summary generation when analytics features are used.</li>
+                                    </ul>
+                                    <p className="text-muted-foreground leading-relaxed font-medium">
+                                        These providers process data only to provide the contracted service to Retra.
+                                    </p>
+                                </div>
                             </div>
                         </section>
 
@@ -161,7 +172,7 @@ export default function PrivacyPage() {
                                     {[
                                         "Access all your stored data at any time.",
                                         "Export your data in standard JSON format.",
-                                        "Delete your account and all associated data.",
+                                        "Delete your account and associated personal data.",
                                         "Opt-out of optional cloud synchronization."
                                     ].map((text, i) => (
                                         <li key={i} className="flex items-start gap-3 text-muted-foreground font-medium">
@@ -180,7 +191,7 @@ export default function PrivacyPage() {
                             </div>
                             <div className="pl-12 space-y-4">
                                 <p className="text-muted-foreground leading-relaxed font-medium">
-                                    If you have any questions or concerns regarding our privacy practices, please reach out to our legal team:
+                                    To submit privacy requests (access, correction, export, or deletion), contact us using the address below. We aim to respond within 30 days.
                                 </p>
                                 <a
                                     href="mailto:support@termus-melesu.vercel.app"

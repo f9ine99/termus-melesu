@@ -1,11 +1,21 @@
 // Client-side auth state management using Supabase Auth
 import { supabase, isSupabaseConfigured } from "./supabase"
 import type { SafeUser } from "./types"
-import { APP_CONFIG } from "./config"
+import { APP_CONFIG, LEGAL_CONFIG } from "./config"
 
 export interface AuthStore {
   user: SafeUser | null
   isLoggedIn: boolean
+  needsPolicyConsent: boolean
+}
+
+const hasAcceptedCurrentPolicy = (metadata: Record<string, any> | undefined): boolean => {
+  if (!metadata) return false
+  return (
+    metadata.consent_version === LEGAL_CONFIG.POLICY_VERSION &&
+    typeof metadata.consent_accepted_at === "string" &&
+    metadata.consent_accepted_at.length > 0
+  )
 }
 
 // Helper to get current session from Supabase
@@ -23,12 +33,46 @@ export const getStoredSession = async (): Promise<AuthStore | null> => {
           createdAt: session.user.created_at,
         },
         isLoggedIn: true,
+        needsPolicyConsent: !hasAcceptedCurrentPolicy(session.user.user_metadata),
       }
     }
   } catch (e) {
     console.error("Failed to get session:", e)
   }
   return null
+}
+
+export const acceptCurrentPolicyConsent = async (): Promise<AuthResult> => {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { success: false, error: "Supabase not configured" }
+  }
+
+  try {
+    const { data, error } = await supabase.auth.updateUser({
+      data: {
+        consent_version: LEGAL_CONFIG.POLICY_VERSION,
+        consent_accepted_at: new Date().toISOString(),
+      },
+    })
+    if (error) throw error
+
+    if (data.user) {
+      return {
+        success: true,
+        user: {
+          id: data.user.id,
+          username: data.user.email || data.user.id,
+          name: data.user.user_metadata?.adminName || data.user.user_metadata?.full_name || "Admin",
+          createdAt: data.user.created_at,
+        },
+      }
+    }
+
+    return { success: false, error: "Failed to save consent" }
+  } catch (e: any) {
+    console.error("Failed to save policy consent:", e)
+    return { success: false, error: e.message || "Failed to save consent" }
+  }
 }
 
 // Authentication result type
@@ -40,7 +84,12 @@ export interface AuthResult {
 }
 
 // Register a new user with Supabase
-export const registerUser = async (email: string, name: string, password: string): Promise<AuthResult> => {
+export const registerUser = async (
+  email: string,
+  name: string,
+  password: string,
+  consentVersion: string,
+): Promise<AuthResult> => {
   if (!isSupabaseConfigured() || !supabase) {
     return { success: false, error: "Supabase not configured" }
   }
@@ -53,6 +102,8 @@ export const registerUser = async (email: string, name: string, password: string
         data: {
           adminName: name,
           full_name: name, // Standard field for Supabase Dashboard
+          consent_version: consentVersion,
+          consent_accepted_at: new Date().toISOString(),
         },
       },
     })

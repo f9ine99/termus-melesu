@@ -3,6 +3,7 @@ export const APP_CONFIG = {
 };
 
 export const LEGAL_CONFIG = {
+    POLICY_VERSION: "1.1.0",
     TERMS_OF_SERVICE_URL: process.env.NEXT_PUBLIC_TERMS_URL || `${APP_CONFIG.SITE_URL}/terms`,
     PRIVACY_POLICY_URL: process.env.NEXT_PUBLIC_PRIVACY_URL || `${APP_CONFIG.SITE_URL}/privacy`,
 };

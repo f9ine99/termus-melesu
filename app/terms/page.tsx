@@ -37,9 +37,9 @@ export default function TermsPage() {
                             Please read these terms carefully before using our application. By accessing or using Termus Melesu, you agree to be bound by these terms.
                         </p>
                         <div className="pt-2 flex items-center gap-4 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                            <span>Version 1.0.0</span>
+                            <span>Version 1.1.0</span>
                             <span className="w-1 h-1 bg-border rounded-full" />
-                            <span>Updated Jan 27, 2026</span>
+                            <span>Updated May 27, 2026</span>
                         </div>
                     </div>
                 </header>
@@ -110,12 +110,12 @@ export default function TermsPage() {
                             </div>
                             <div className="pl-12 space-y-4">
                                 <p className="text-muted-foreground leading-relaxed font-medium">
-                                    Your privacy is paramount. Termus Melesu is designed with a "local-first" philosophy. Most of your business data is stored directly on your device.
+                                    Your privacy is paramount. Retra operates with local storage and optional cloud sync, and account data may be processed by trusted providers to deliver authentication, analytics, and AI summaries.
                                 </p>
                                 <div className="p-6 bg-secondary/30 rounded-[2rem] border border-border/50 space-y-3">
                                     <p className="text-xs font-bold text-foreground">Key Privacy Points:</p>
                                     <p className="text-xs text-muted-foreground leading-relaxed">
-                                        Cloud synchronization is optional and requires explicit configuration. We do not sell, rent, or trade your business data to third parties for marketing purposes.
+                                        Cloud synchronization is optional and requires explicit configuration. We do not sell, rent, or trade your business data for third-party marketing.
                                     </p>
                                 </div>
                             </div>

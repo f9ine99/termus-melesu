@@ -24,6 +24,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [shake, setShake] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
+  const [hasAcceptedPolicies, setHasAcceptedPolicies] = useState(false)
 
   // Avoid hydration mismatch
   useEffect(() => {
@@ -101,10 +102,15 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       return
     }
 
+    if (!hasAcceptedPolicies) {
+      setError("You must accept the Terms of Service and Privacy Policy to create an account.")
+      return
+    }
+
     setError("")
     setIsLoading(true)
 
-    const result = await registerUser(email, name, password)
+    const result = await registerUser(email, name, password, LEGAL_CONFIG.POLICY_VERSION)
 
     if (result.success) {
       setIsSuccess(true)
@@ -281,11 +287,42 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               setError("")
               setSuccessMessage("")
               setPassword("")
+              setHasAcceptedPolicies(false)
             }}
             className="w-full py-3.5 bg-secondary text-foreground rounded-[1rem] font-bold text-[15px] hover:bg-secondary/80 transition-colors"
           >
             {mode === "login" ? "Create an account" : "Sign in to account"}
           </button>
+
+          {mode === "register" && (
+            <label className="flex items-start gap-3 p-3 bg-secondary/40 border border-border rounded-[1rem] text-[12px] text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={hasAcceptedPolicies}
+                onChange={(e) => setHasAcceptedPolicies(e.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-primary"
+              />
+              <span className="leading-relaxed">
+                I agree to the{" "}
+                <button
+                  type="button"
+                  onClick={() => openLegal(LEGAL_CONFIG.TERMS_OF_SERVICE_URL)}
+                  className="underline font-bold text-foreground hover:text-primary transition-colors"
+                >
+                  {t_login("termsOfService")}
+                </button>{" "}
+                and{" "}
+                <button
+                  type="button"
+                  onClick={() => openLegal(LEGAL_CONFIG.PRIVACY_POLICY_URL)}
+                  className="underline font-bold text-foreground hover:text-primary transition-colors"
+                >
+                  {t_login("privacyPolicy")}
+                </button>
+                .
+              </span>
+            </label>
+          )}
 
           <div className="grid grid-cols-1 gap-3 pt-2">
             <button

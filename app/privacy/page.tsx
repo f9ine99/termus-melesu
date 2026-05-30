@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { ArrowLeftIcon, LockIcon, BottleIcon } from "@/components/ui/icons"
+import { LEGAL_CONFIG } from "@/lib/config"
 
 export default function PrivacyPage() {
     return (
@@ -194,10 +195,10 @@ export default function PrivacyPage() {
                                     To submit privacy requests (access, correction, export, or deletion), contact us using the address below. We aim to respond within 30 days.
                                 </p>
                                 <a
-                                    href="mailto:support@termus-melesu.vercel.app"
+                                    href={`mailto:${LEGAL_CONFIG.PRIVACY_CONTACT_EMAIL}`}
                                     className="inline-block px-6 py-3 bg-secondary text-foreground rounded-xl font-bold text-sm hover:bg-primary hover:text-white transition-all active:scale-95"
                                 >
-                                    support@termus-melesu.vercel.app
+                                    {LEGAL_CONFIG.PRIVACY_CONTACT_EMAIL}
                                 </a>
                             </div>
                         </section>

@@ -426,14 +426,43 @@ export const getOverdueCustomers = (days = 14): (Customer & { daysInactive: numb
 export const exportData = (): string => {
   if (typeof window === "undefined") return ""
 
+  const userId = getCurrentUserId()
+
   const data = {
+    exportType: "gdpr_portability",
     version: STORAGE_VERSION,
-    timestamp: new Date().toISOString(),
+    exportedAt: new Date().toISOString(),
+    account: {
+      userId,
+    },
     customers: getCustomers(),
     transactions: getTransactions(),
   }
 
   return JSON.stringify(data, null, 2)
+}
+
+export const clearCurrentUserLocalData = (): void => {
+  if (typeof window === "undefined") return
+
+  const userId = getCurrentUserId()
+  if (!userId) return
+
+  try {
+    const allCustomers: Customer[] = JSON.parse(localStorage.getItem(CUSTOMERS_KEY) || "[]")
+    const allTransactions: Transaction[] = JSON.parse(localStorage.getItem(TRANSACTIONS_KEY) || "[]")
+
+    localStorage.setItem(
+      CUSTOMERS_KEY,
+      JSON.stringify(allCustomers.filter((customer) => customer.userId !== userId)),
+    )
+    localStorage.setItem(
+      TRANSACTIONS_KEY,
+      JSON.stringify(allTransactions.filter((transaction) => transaction.userId !== userId)),
+    )
+  } catch (e) {
+    console.error("Failed to clear local user data:", e)
+  }
 }
 
 export const importData = (jsonString: string): { success: boolean; error?: string } => {

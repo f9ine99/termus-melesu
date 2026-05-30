@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
 import { useColorTheme, type ColorTheme } from "@/components/color-theme-provider"
-import { logoutUser, updateUserName, updateUserPassword } from "@/lib/auth-store"
+import { deleteUserAccount, logoutUser, updateUserName, updateUserPassword } from "@/lib/auth-store"
+import { buildPrivacyRequestMailto } from "@/lib/privacy"
 import { exportData, importData, getCustomers, getTransactions } from "@/lib/data-store"
 import { pushAllDataToCloud, pullAllDataFromCloud, isSupabaseConfigured } from "@/lib/sync-service"
 import type { SafeUser } from "@/lib/types"
-import { ArrowLeftIcon, LogoutIcon, SettingsIcon, PeopleIcon, ChartIcon, SunIcon, MoonIcon, CheckIcon, DownloadIcon, UploadIcon, SendIcon, LockIcon, CloudIcon, ShieldCheckIcon } from "@/components/ui/icons"
+import { ArrowLeftIcon, LogoutIcon, SettingsIcon, PeopleIcon, ChartIcon, SunIcon, MoonIcon, CheckIcon, DownloadIcon, UploadIcon, SendIcon, LockIcon, CloudIcon, ShieldCheckIcon, MailIcon, TrashIcon } from "@/components/ui/icons"
 import { LEGAL_CONFIG } from "@/lib/config"
 
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt"
@@ -42,6 +43,9 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
   const [newName, setNewName] = useState(user.name)
   const [newPassword, setNewPassword] = useState("")
   const [isUpdating, setIsUpdating] = useState(false)
+  const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false)
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState("")
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false)
 
   // Avoid hydration mismatch
   useEffect(() => {
@@ -68,12 +72,39 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
     const date = now.toISOString().split('T')[0]
     const time = now.getHours().toString().padStart(2, '0') + '-' + now.getMinutes().toString().padStart(2, '0')
 
-    a.download = `retra_backup_${date}_${time}.json`
+    a.download = `retra_data_export_${date}_${time}.json`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-    onNotifySuccess?.(t("exportSuccess"))
+    onNotifySuccess?.(t("exportMyDataSuccess"))
+  }
+
+  const handlePrivacyRequest = () => {
+    window.location.href = buildPrivacyRequestMailto(user.username)
+  }
+
+  const confirmDeleteAccount = async () => {
+    if (deleteConfirmationText.trim().toUpperCase() !== "DELETE") {
+      setError(t("deleteAccountConfirmTextMismatch"))
+      return
+    }
+
+    setIsDeletingAccount(true)
+    setError("")
+
+    const result = await deleteUserAccount()
+    setIsDeletingAccount(false)
+
+    if (result.success) {
+      onNotifySuccess?.(t("deleteAccountSuccess"))
+      setShowDeleteAccountConfirm(false)
+      setDeleteConfirmationText("")
+      onLogout()
+      return
+    }
+
+    setError(result.error || t("deleteAccountError"))
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -337,8 +368,8 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
                     <DownloadIcon className="w-5 h-5" />
                   </div>
                   <div className="text-left">
-                    <p className="font-black text-sm text-foreground">{t("backupData")}</p>
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{t("downloadBackup")}</p>
+                    <p className="font-black text-sm text-foreground">{t("exportMyData")}</p>
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{t("exportMyDataHint")}</p>
                   </div>
                 </div>
                 <ArrowLeftIcon className="w-4 h-4 text-muted-foreground/30 rotate-180" />
@@ -428,8 +459,13 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-1">{t("legal")}</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-1">{t("privacyAndRights")}</h3>
             <div className="bg-card/50 backdrop-blur-sm border border-border rounded-[2.5rem] overflow-hidden shadow-soft">
+              <SettingsItem
+                icon={<MailIcon className="w-4 h-4" />}
+                label={t("privacyRequest")}
+                onClick={handlePrivacyRequest}
+              />
               <SettingsItem
                 icon={<ShieldCheckIcon className="w-4 h-4" />}
                 label={t("termsOfService")}
@@ -447,6 +483,26 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
           <div className="space-y-4">
             <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-1">Security</h3>
             <div className="bg-card/50 backdrop-blur-sm border border-border rounded-[2.5rem] overflow-hidden shadow-soft">
+              <button
+                type="button"
+                onClick={() => {
+                  setError("")
+                  setDeleteConfirmationText("")
+                  setShowDeleteAccountConfirm(true)
+                }}
+                className="w-full flex items-center justify-between p-6 hover:bg-destructive/5 active:bg-destructive/10 transition-colors border-b border-border/50 group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive group-hover:bg-destructive group-hover:text-white transition-all">
+                    <TrashIcon className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-black text-sm text-destructive">{t("deleteAccount")}</p>
+                    <p className="text-[9px] font-bold text-destructive/60 uppercase tracking-widest">{t("deleteAccountHint")}</p>
+                  </div>
+                </div>
+                <ArrowLeftIcon className="w-4 h-4 text-destructive/30 rotate-180" />
+              </button>
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center justify-between p-6 hover:bg-destructive/5 active:bg-destructive/10 transition-colors group"
@@ -625,6 +681,53 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
                 className="flex-1 py-4 bg-orange-500 text-white rounded-xl font-bold text-xs shadow-lg transition-all active:scale-95"
               >
                 {t("confirm")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteAccountConfirm && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-[100] p-6 animate-in fade-in duration-300">
+          <div className="w-full max-w-sm bg-card border border-border rounded-[2rem] p-8 space-y-6 shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="space-y-2 text-center">
+              <div className="w-12 h-12 bg-destructive/10 text-destructive rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <TrashIcon className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold tracking-tight text-foreground">{t("deleteAccountConfirmTitle")}</h3>
+              <p className="text-xs text-muted-foreground">{t("deleteAccountConfirmMessage")}</p>
+            </div>
+
+            <input
+              type="text"
+              value={deleteConfirmationText}
+              onChange={(e) => setDeleteConfirmationText(e.target.value)}
+              placeholder={t("deleteAccountConfirmPlaceholder")}
+              className="w-full px-4 py-3 bg-secondary/50 border border-border/50 rounded-xl text-sm font-bold focus:ring-2 focus:ring-destructive/20 transition-all outline-none"
+            />
+
+            {error && <p className="text-xs font-bold text-red-500 text-center">{error}</p>}
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteAccountConfirm(false)
+                  setDeleteConfirmationText("")
+                  setError("")
+                }}
+                className="flex-1 py-4 bg-secondary text-foreground rounded-xl font-bold text-xs transition-all active:scale-95"
+              >
+                {t("cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteAccount}
+                disabled={isDeletingAccount}
+                className="flex-1 py-4 bg-destructive text-destructive-foreground rounded-xl font-bold text-xs shadow-lg transition-all active:scale-95 disabled:opacity-50"
+              >
+                {isDeletingAccount ? t("deletingAccount") : t("confirm")}
               </button>
             </div>
           </div>

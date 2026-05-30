@@ -73,6 +73,8 @@
    ```env
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+   NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL=privacy@your-domain.com
    GROQ_API_KEY=your_groq_api_key
    ```
 

@@ -2,6 +2,8 @@
 import { supabase, isSupabaseConfigured } from "./supabase"
 import type { SafeUser } from "./types"
 import { APP_CONFIG, LEGAL_CONFIG } from "./config"
+import { clearCurrentUserLocalData } from "./data-store"
+import { clearPendingSyncQueue } from "./sync-service"
 
 export interface AuthStore {
   user: SafeUser | null
@@ -175,6 +177,43 @@ export const authenticateUser = async (email: string, password: string): Promise
 export const logoutUser = async (): Promise<void> => {
   if (!supabase) return
   await supabase.auth.signOut()
+}
+
+export const deleteUserAccount = async (): Promise<AuthResult> => {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { success: false, error: "Supabase not configured" }
+  }
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.access_token) {
+      return { success: false, error: "Not authenticated" }
+    }
+
+    const response = await fetch("/api/account/delete", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    })
+
+    const payload = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      return {
+        success: false,
+        error: payload.error || "Failed to delete account",
+      }
+    }
+
+    clearCurrentUserLocalData()
+    clearPendingSyncQueue()
+    await supabase.auth.signOut()
+
+    return { success: true, message: "Account deleted successfully" }
+  } catch (e: any) {
+    console.error("Account deletion failed:", e)
+    return { success: false, error: e.message || "Failed to delete account" }
+  }
 }
 
 

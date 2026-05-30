@@ -135,6 +135,12 @@ function savePendingChanges(changes: PendingChange[]): void {
     localStorage.setItem(PENDING_CHANGES_KEY, JSON.stringify(changes))
 }
 
+export const clearPendingSyncQueue = (): void => {
+    if (typeof window === 'undefined') return
+    localStorage.removeItem(PENDING_CHANGES_KEY)
+    localStorage.removeItem(LAST_SYNC_KEY)
+}
+
 function addPendingChange(type: ChangeType, data: any): void {
     const changes = getPendingChanges()
     changes.push({

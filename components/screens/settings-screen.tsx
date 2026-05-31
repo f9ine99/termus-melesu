@@ -4,11 +4,10 @@ import { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
 import { useColorTheme, type ColorTheme } from "@/components/color-theme-provider"
 import { deleteUserAccount, logoutUser, updateUserName, updateUserPassword } from "@/lib/auth-store"
-import { buildPrivacyRequestMailto } from "@/lib/privacy"
 import { exportData, importData, getCustomers, getTransactions } from "@/lib/data-store"
 import { pushAllDataToCloud, pullAllDataFromCloud, isSupabaseConfigured } from "@/lib/sync-service"
 import type { SafeUser } from "@/lib/types"
-import { ArrowLeftIcon, LogoutIcon, SettingsIcon, PeopleIcon, ChartIcon, SunIcon, MoonIcon, CheckIcon, DownloadIcon, UploadIcon, SendIcon, LockIcon, CloudIcon, ShieldCheckIcon, MailIcon, TrashIcon } from "@/components/ui/icons"
+import { ArrowLeftIcon, LogoutIcon, SettingsIcon, PeopleIcon, ChartIcon, SunIcon, MoonIcon, CheckIcon, DownloadIcon, UploadIcon, SendIcon, LockIcon, CloudIcon, ShieldCheckIcon, TrashIcon } from "@/components/ui/icons"
 import { LEGAL_CONFIG } from "@/lib/config"
 
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt"
@@ -78,10 +77,6 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
     onNotifySuccess?.(t("exportMyDataSuccess"))
-  }
-
-  const handlePrivacyRequest = () => {
-    window.location.href = buildPrivacyRequestMailto(user.username)
   }
 
   const confirmDeleteAccount = async () => {
@@ -459,13 +454,8 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-1">{t("privacyAndRights")}</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-1">{t("legal")}</h3>
             <div className="bg-card/50 backdrop-blur-sm border border-border rounded-[2.5rem] overflow-hidden shadow-soft">
-              <SettingsItem
-                icon={<MailIcon className="w-4 h-4" />}
-                label={t("privacyRequest")}
-                onClick={handlePrivacyRequest}
-              />
               <SettingsItem
                 icon={<ShieldCheckIcon className="w-4 h-4" />}
                 label={t("termsOfService")}

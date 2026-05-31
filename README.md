@@ -74,9 +74,17 @@
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+   NEXT_PUBLIC_SITE_URL=http://localhost:3000
    NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL=privacy@your-domain.com
    GROQ_API_KEY=your_groq_api_key
    ```
+
+   In the Supabase dashboard (**Authentication → URL configuration**), add these redirect URLs (use your production domain in production):
+
+   - `http://localhost:3000/auth/callback`
+   - `https://your-domain.com/auth/callback`
+
+   Password reset emails use `NEXT_PUBLIC_SITE_URL` to build the callback link (`/auth/callback?next=/auth/reset-password`).
 
 4. Development Server:
    ```bash

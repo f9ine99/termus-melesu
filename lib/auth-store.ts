@@ -276,6 +276,56 @@ export const updateUserPassword = async (password: string): Promise<AuthResult> 
 }
 
 // Social Sign-In with Supabase
+export const requestPasswordReset = async (email: string): Promise<AuthResult> => {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { success: false, error: "Supabase not configured" }
+  }
+
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: APP_CONFIG.getPasswordResetRedirectUrl(),
+    })
+
+    if (error) throw error
+
+    return {
+      success: true,
+      message: "If an account exists for this email, a reset link has been sent.",
+    }
+  } catch (e: any) {
+    console.error("Password reset request failed:", e)
+    return { success: false, error: e.message || "Failed to send reset email" }
+  }
+}
+
+export const completePasswordReset = async (password: string): Promise<AuthResult> => {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { success: false, error: "Supabase not configured" }
+  }
+
+  if (password.length < 6) {
+    return { success: false, error: "Password must be at least 6 characters" }
+  }
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      return { success: false, error: "Reset link is invalid or expired. Please request a new one." }
+    }
+
+    const { error } = await supabase.auth.updateUser({ password })
+    if (error) throw error
+
+    return {
+      success: true,
+      message: "Password updated successfully",
+    }
+  } catch (e: any) {
+    console.error("Password reset failed:", e)
+    return { success: false, error: e.message || "Failed to update password" }
+  }
+}
+
 export const signInWithSocial = async (provider: "google"): Promise<void> => {
   if (!isSupabaseConfigured() || !supabase) return
 

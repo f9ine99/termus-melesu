@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { authenticateUser, registerUser, isLocked, getRemainingLockTime, signInWithSocial } from "@/lib/auth-store"
+import { authenticateUser, registerUser, requestPasswordReset, isLocked, getRemainingLockTime, signInWithSocial } from "@/lib/auth-store"
+import { LEGAL_CONFIG } from "@/lib/config"
 import type { SafeUser } from "@/lib/types"
 import { GoogleIcon, MailIcon, ShieldCheckIcon, CheckIcon, BottleIcon, EyeIcon, EyeOffIcon, AlertIcon, InfoIcon, UserIcon } from "@/components/ui/icons"
 import { NotificationToast } from "@/components/ui/notification-toast"
@@ -13,7 +14,7 @@ interface LoginScreenProps {
 
 export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [mounted, setMounted] = useState(false)
-  const [mode, setMode] = useState<"login" | "register">("login")
+  const [mode, setMode] = useState<"login" | "register" | "forgot">("login")
   const [email, setEmail] = useState("")
   const [name, setName] = useState("")
   const [password, setPassword] = useState("")
@@ -90,6 +91,27 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     }
   }
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) {
+      setError("Please enter your email address")
+      return
+    }
+
+    setError("")
+    setIsLoading(true)
+
+    const result = await requestPasswordReset(email)
+
+    if (result.success) {
+      setSuccessMessage(result.message || "Check your email for a reset link.")
+      setIsLoading(false)
+    } else {
+      setError(result.error || "Failed to send reset email")
+      setIsLoading(false)
+    }
+  }
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email || !name || !password) {
@@ -136,7 +158,6 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
   if (!mounted) return null
 
-  const { LEGAL_CONFIG } = require("@/lib/config")
   const { translations } = require("@/lib/translations")
   const lang = "en" // Default for login screen if not yet selected, or we could detect browser lang
   const t_login = (key: string, params?: any) => {
@@ -178,19 +199,27 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              {mode === "login" ? "Sign In" : "Create Account"}
+              {mode === "login" ? "Sign In" : mode === "register" ? "Create Account" : "Reset Password"}
             </h1>
             <p className="text-sm text-muted-foreground max-w-[280px] mx-auto leading-tight">
               {mode === "login"
                 ? "To sign in to an account in the application, enter your email and password"
-                : "Join us today to start managing your digital ledger with ease."}
+                : mode === "register"
+                  ? "Join us today to start managing your digital ledger with ease."
+                  : "Enter your account email and we will send you a password reset link."}
             </p>
           </div>
         </div>
 
         {/* Form */}
         <form
-          onSubmit={mode === "login" ? handleLogin : handleRegister}
+          onSubmit={
+            mode === "login"
+              ? handleLogin
+              : mode === "register"
+                ? handleRegister
+                : handleForgotPassword
+          }
           className={cn("space-y-4", shake && "animate-shake")}
         >
           <div className="space-y-3">
@@ -224,36 +253,46 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               </div>
             )}
 
-            <div className="relative">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                <ShieldCheckIcon className="w-5 h-5" />
+            {mode !== "forgot" && (
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  <ShieldCheckIcon className="w-5 h-5" />
+                </div>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading || isSuccess || isLockedOut}
+                  className="w-full pl-12 pr-12 py-3.5 bg-secondary border-none rounded-[1rem] text-[15px] font-medium placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/10 transition-all outline-none disabled:opacity-50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                </button>
               </div>
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading || isSuccess || isLockedOut}
-                className="w-full pl-12 pr-12 py-3.5 bg-secondary border-none rounded-[1rem] text-[15px] font-medium placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/10 transition-all outline-none disabled:opacity-50"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {showPassword ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-              </button>
-            </div>
+            )}
           </div>
 
-          <div className="text-center">
-            <button
-              type="button"
-              className="text-[14px] font-bold text-primary hover:opacity-70 transition-opacity"
-            >
-              Forgot password?
-            </button>
-          </div>
+          {mode === "login" && (
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("forgot")
+                  setError("")
+                  setSuccessMessage("")
+                  setPassword("")
+                }}
+                className="text-[14px] font-bold text-primary hover:opacity-70 transition-opacity"
+              >
+                Forgot password?
+              </button>
+            </div>
+          )}
 
           <div className="pt-2">
             <button
@@ -265,34 +304,54 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                 <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
               ) : isSuccess ? (
                 <CheckIcon className="w-5 h-5" />
+              ) : mode === "forgot" ? (
+                "Send reset link"
               ) : (
                 "Continue"
               )}
             </button>
           </div>
 
-          <div className="relative py-2 flex items-center justify-center">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border"></div>
-            </div>
-            <span className="relative px-4 bg-background text-[13px] text-muted-foreground font-medium">
-              {mode === "login" ? "Don't have an account yet?" : "Already have an account?"}
-            </span>
-          </div>
+          {mode !== "forgot" && (
+            <>
+              <div className="relative py-2 flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border"></div>
+                </div>
+                <span className="relative px-4 bg-background text-[13px] text-muted-foreground font-medium">
+                  {mode === "login" ? "Don't have an account yet?" : "Already have an account?"}
+                </span>
+              </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setMode(mode === "login" ? "register" : "login")
-              setError("")
-              setSuccessMessage("")
-              setPassword("")
-              setHasAcceptedPolicies(false)
-            }}
-            className="w-full py-3.5 bg-secondary text-foreground rounded-[1rem] font-bold text-[15px] hover:bg-secondary/80 transition-colors"
-          >
-            {mode === "login" ? "Create an account" : "Sign in to account"}
-          </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode(mode === "login" ? "register" : "login")
+                  setError("")
+                  setSuccessMessage("")
+                  setPassword("")
+                  setHasAcceptedPolicies(false)
+                }}
+                className="w-full py-3.5 bg-secondary text-foreground rounded-[1rem] font-bold text-[15px] hover:bg-secondary/80 transition-colors"
+              >
+                {mode === "login" ? "Create an account" : "Sign in to account"}
+              </button>
+            </>
+          )}
+
+          {mode === "forgot" && (
+            <button
+              type="button"
+              onClick={() => {
+                setMode("login")
+                setError("")
+                setSuccessMessage("")
+              }}
+              className="w-full py-3.5 bg-secondary text-foreground rounded-[1rem] font-bold text-[15px] hover:bg-secondary/80 transition-colors"
+            >
+              Back to sign in
+            </button>
+          )}
 
           {mode === "register" && (
             <label className="flex items-start gap-3 p-3 bg-secondary/40 border border-border rounded-[1rem] text-[12px] text-muted-foreground">
@@ -324,19 +383,22 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             </label>
           )}
 
-          <div className="grid grid-cols-1 gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => signInWithSocial("google")}
-              className="w-full flex items-center justify-center gap-3 py-3.5 bg-card border border-border rounded-[1rem] font-bold text-[15px] hover:bg-secondary transition-all"
-            >
-              <GoogleIcon className="w-5 h-5" />
-              <span>Sign in with Google</span>
-            </button>
-          </div>
+          {mode !== "forgot" && (
+            <div className="grid grid-cols-1 gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => signInWithSocial("google")}
+                className="w-full flex items-center justify-center gap-3 py-3.5 bg-card border border-border rounded-[1rem] font-bold text-[15px] hover:bg-secondary transition-all"
+              >
+                <GoogleIcon className="w-5 h-5" />
+                <span>Sign in with Google</span>
+              </button>
+            </div>
+          )}
         </form>
 
         {/* Footer */}
+        {mode !== "forgot" && (
         <div className="pt-4 text-center">
           <p className="text-[12px] text-muted-foreground leading-relaxed">
             {(() => {
@@ -372,6 +434,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             })()}
           </p>
         </div>
+        )}
 
         {/* Status Messages - Lockout Only */}
         <div className="space-y-4 min-h-[48px]">

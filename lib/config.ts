@@ -1,5 +1,9 @@
 export const APP_CONFIG = {
     SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || "https://termus-melesu.vercel.app",
+    getPasswordResetRedirectUrl: () => {
+        const nextPath = encodeURIComponent("/auth/reset-password")
+        return `${APP_CONFIG.SITE_URL}/auth/callback?next=${nextPath}`
+    },
 };
 
 export const LEGAL_CONFIG = {

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, useState } from "react"
+import React, { createContext, useContext, useEffect, useLayoutEffect, useState } from "react"
 
 export type ColorTheme = "violet" | "blue" | "green" | "orange" | "slate" | "teal" | "rose"
 
@@ -15,10 +15,11 @@ export function ColorThemeProvider({ children }: { children: React.ReactNode }) 
     const [colorTheme, setColorTheme] = useState<ColorTheme>("violet")
     const [mounted, setMounted] = useState(false)
 
-    useEffect(() => {
-        const savedTheme = localStorage.getItem("color-theme") as ColorTheme
+    useLayoutEffect(() => {
+        const savedTheme = localStorage.getItem("color-theme") as ColorTheme | null
         if (savedTheme) {
             setColorTheme(savedTheme)
+            document.documentElement.setAttribute("data-theme", savedTheme)
         }
         setMounted(true)
     }, [])

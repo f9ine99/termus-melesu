@@ -1,6 +1,7 @@
 // AI Service for transaction summarization
 import type { Transaction, Language, Customer } from "./types"
 import { getCustomers, getTransactions, getDashboardStats } from "./data-store"
+import { supabase, isSupabaseConfigured } from "./supabase"
 
 export type SummaryPeriod = "today" | "week" | "month"
 
@@ -102,6 +103,15 @@ export async function getTransactionSummary(
     messages: any[] = []
 ): Promise<SummarizeResponse> {
     try {
+        if (!isSupabaseConfigured() || !supabase) {
+            return { summary: "", error: "Not authenticated" }
+        }
+
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.access_token) {
+            return { summary: "", error: "Not authenticated" }
+        }
+
         // Prepare transaction data for API
         const transactionData = transactions.map((t) => ({
             id: t.id,
@@ -123,6 +133,7 @@ export async function getTransactionSummary(
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                Authorization: `Bearer ${session.access_token}`,
             },
             body: JSON.stringify({
                 transactions: transactionData,

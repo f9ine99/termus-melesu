@@ -1,6 +1,9 @@
 // API Route for Groq-powered transaction summarization
 import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
@@ -59,12 +62,34 @@ interface SummarizeRequest {
 
 export async function POST(request: NextRequest) {
     try {
-        // Check API key
+        if (!supabaseUrl || !supabaseAnonKey) {
+            return NextResponse.json({ error: "Supabase is not configured" }, { status: 500 })
+        }
+
         if (!GROQ_API_KEY) {
             return NextResponse.json(
                 { error: "Groq API key not configured" },
                 { status: 500 }
             )
+        }
+
+        const authHeader = request.headers.get("Authorization")
+        if (!authHeader?.startsWith("Bearer ")) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        const accessToken = authHeader.slice("Bearer ".length).trim()
+        if (!accessToken) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+            auth: { autoRefreshToken: false, persistSession: false },
+        })
+
+        const { data: userData, error: userError } = await userClient.auth.getUser(accessToken)
+        if (userError || !userData.user) {
+            return NextResponse.json({ error: "Invalid or expired session" }, { status: 401 })
         }
 
         const body: SummarizeRequest = await request.json()

@@ -342,8 +342,3 @@ export const signInWithSocial = async (provider: "google"): Promise<void> => {
   }
 }
 
-// Re-export lockout utilities (placeholder if needed, but Supabase handles this server-side)
-export const isLocked = () => false
-export const getRemainingLockTime = () => 0
-export const getRemainingAttempts = () => 5
-

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { authenticateUser, registerUser, requestPasswordReset, isLocked, getRemainingLockTime, signInWithSocial } from "@/lib/auth-store"
+import { authenticateUser, registerUser, requestPasswordReset, signInWithSocial } from "@/lib/auth-store"
 import { LEGAL_CONFIG } from "@/lib/config"
 import type { SafeUser } from "@/lib/types"
 import { GoogleIcon, MailIcon, ShieldCheckIcon, CheckIcon, BottleIcon, EyeIcon, EyeOffIcon, AlertIcon, InfoIcon, UserIcon } from "@/components/ui/icons"
@@ -21,7 +21,6 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
-  const [lockoutTime, setLockoutTime] = useState(0)
   const [shake, setShake] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
@@ -30,20 +29,6 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   // Avoid hydration mismatch
   useEffect(() => {
     setMounted(true)
-  }, [])
-
-  // Check lockout status
-  useEffect(() => {
-    const checkLockout = () => {
-      if (isLocked()) {
-        setLockoutTime(getRemainingLockTime())
-      } else {
-        setLockoutTime(0)
-      }
-    }
-    checkLockout()
-    const interval = setInterval(checkLockout, 1000)
-    return () => clearInterval(interval)
   }, [])
 
   // Auto-hide notifications
@@ -56,15 +41,6 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       return () => clearTimeout(timer)
     }
   }, [error, successMessage])
-
-  const isLockedOut = lockoutTime > 0
-
-  const formatLockoutTime = (ms: number): string => {
-    const seconds = Math.ceil(ms / 1000)
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
-  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -232,7 +208,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                 placeholder="E-mail"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading || isSuccess || isLockedOut}
+                disabled={isLoading || isSuccess}
                 className="w-full pl-12 pr-4 py-3.5 bg-secondary border-none rounded-[1rem] text-[15px] font-medium placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/10 transition-all outline-none disabled:opacity-50"
               />
             </div>
@@ -263,7 +239,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading || isSuccess || isLockedOut}
+                  disabled={isLoading || isSuccess}
                   className="w-full pl-12 pr-12 py-3.5 bg-secondary border-none rounded-[1rem] text-[15px] font-medium placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/10 transition-all outline-none disabled:opacity-50"
                 />
                 <button
@@ -297,7 +273,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           <div className="pt-2">
             <button
               type="submit"
-              disabled={isLoading || isSuccess || isLockedOut}
+              disabled={isLoading || isSuccess}
               className="w-full py-3.5 bg-primary text-primary-foreground rounded-[1rem] font-bold text-[16px] shadow-lg active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isLoading ? (
@@ -436,19 +412,6 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         </div>
         )}
 
-        {/* Status Messages - Lockout Only */}
-        <div className="space-y-4 min-h-[48px]">
-          {isLockedOut && (
-            <div className="flex items-center gap-3 p-3.5 bg-secondary border border-border rounded-[1rem] animate-pulse">
-              <div className="flex-shrink-0 w-8 h-8 bg-muted-foreground rounded-lg flex items-center justify-center shadow-sm">
-                <ShieldCheckIcon className="w-5 h-5 text-white" />
-              </div>
-              <p className="text-[13px] text-foreground font-bold uppercase tracking-wider">
-                Locked: {formatLockoutTime(lockoutTime)}
-              </p>
-            </div>
-          )}
-        </div>
       </div>
 
       <style jsx global>{`

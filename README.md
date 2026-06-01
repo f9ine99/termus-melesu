@@ -34,7 +34,7 @@
 
 ###  Trust & Security
 - **Trust-Based Logic:** Automated deposit tracking for new customers vs. credit profiles for trusted partners.
-- **Secure Deletion:** PIN-protected transaction removal to prevent unauthorized data tampering.
+- **Secure Deletion:** Set a 4–6 digit deletion PIN in Settings to confirm transaction/customer deletes and data restore.
 
 ---
 
@@ -59,7 +59,7 @@
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/termus-melesu.git
+   git clone https://github.com/f9ine99/termus-melesu.git
    cd termus-melesu
    ```
 

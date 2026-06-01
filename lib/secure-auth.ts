@@ -192,7 +192,7 @@ export function getRemainingAttempts(): number {
     return Math.max(0, MAX_ATTEMPTS - state.failedAttempts)
 }
 
-// Record a failed login attempt
+// Record a failed PIN verification attempt
 export function recordFailedAttempt(): void {
     const state = getLockoutState()
     state.failedAttempts += 1
@@ -204,7 +204,7 @@ export function recordFailedAttempt(): void {
     saveLockoutState(state)
 }
 
-// Clear lockout state (on successful login)
+// Clear lockout state (on successful PIN verification)
 export function clearLockout(): void {
     if (typeof window === "undefined") return
 

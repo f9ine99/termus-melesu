@@ -93,6 +93,16 @@ export const translations = {
         deleteTransaction: "Delete Transaction",
         enterPinToConfirm: "Enter PIN to confirm",
         incorrectPin: "Incorrect PIN",
+        setDeletionPin: "Set Deletion PIN",
+        changeDeletionPin: "Change Deletion PIN",
+        deletionPinHint: "4–6 digits for deletes and data restore",
+        pinRequiredInSettings: "Set a deletion PIN in Settings before using this action.",
+        pinLocked: "Too many attempts. Try again in {{time}}.",
+        pinSetSuccess: "Deletion PIN saved",
+        confirmPin: "Confirm PIN",
+        newPin: "New PIN",
+        pinsDoNotMatch: "PINs do not match",
+        pinLengthError: "PIN must be 4–6 digits",
         transactionDeleted: "Transaction deleted successfully",
 
         // Data Management
@@ -347,6 +357,16 @@ export const translations = {
         deleteTransaction: "ግብይትን ሰርዝ",
         enterPinToConfirm: "ለማረጋገጥ ፒን ያስገቡ",
         incorrectPin: "የተሳሳተ ፒን",
+        setDeletionPin: "የማስወገድ ፒን ያዘጋጁ",
+        changeDeletionPin: "የማስወገድ ፒን ቀይር",
+        deletionPinHint: "ለማስወገድ እና ለመረጃ መልስ 4–6 አሃዞች",
+        pinRequiredInSettings: "ይህን ተግባር ከመጠቀምዎ በፊት በቅንብሮች ውስጥ የማስወገድ ፒን ያዘጋጁ።",
+        pinLocked: "ብዙ ሙከራዎች። በ {{time}} ውስጥ እንደገና ይሞክሩ።",
+        pinSetSuccess: "የማስወገድ ፒን ተቀምጧል",
+        confirmPin: "ፒን አረጋግጥ",
+        newPin: "አዲስ ፒን",
+        pinsDoNotMatch: "ፒኖቹ አይዛመዱም",
+        pinLengthError: "ፒን 4–6 አሃዞች መሆን አለበት",
         transactionDeleted: "ግብይት በተሳካ ሁኔታ ተሰርዟል",
 
         // Data Management

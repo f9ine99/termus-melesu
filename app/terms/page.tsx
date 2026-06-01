@@ -153,7 +153,7 @@ export default function TermsPage() {
                             </div>
                             <div className="pl-12 space-y-4">
                                 <p className="text-muted-foreground leading-relaxed font-medium italic">
-                                    "The service is provided on an 'as is' and 'as available' basis."
+                                    &ldquo;The service is provided on an &apos;as is&apos; and &apos;as available&apos; basis.&rdquo;
                                 </p>
                                 <p className="text-muted-foreground leading-relaxed font-medium">
                                     Termus Melesu and its developers shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, or other intangible losses.

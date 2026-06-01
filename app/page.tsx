@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { acceptCurrentPolicyConsent, getStoredSession } from "@/lib/auth-store"
+import { refreshCurrentUserId } from "@/lib/data-store"
 import { LEGAL_CONFIG } from "@/lib/config"
 import LoginScreen from "@/components/screens/login-screen"
 import DashboardLayout from "@/components/layouts/dashboard-layout"
@@ -17,6 +18,7 @@ export default function Home() {
   useEffect(() => {
     // Check for stored session
     const checkSession = async () => {
+      await refreshCurrentUserId()
       const session = await getStoredSession()
       if (session?.isLoggedIn && session.user) {
         setUser(session.user)

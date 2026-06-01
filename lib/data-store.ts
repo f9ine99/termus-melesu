@@ -14,7 +14,6 @@ import {
 // Simulate data persistence with localStorage
 const CUSTOMERS_KEY = "bottletrack_customers"
 const TRANSACTIONS_KEY = "bottletrack_transactions"
-const SESSION_KEY = "bottletrack_session"
 
 const STORAGE_VERSION = "v1.3" // Version bump for multi-user support
 const VERSION_KEY = "bottletrack_version"
@@ -41,23 +40,32 @@ if (typeof window !== "undefined") {
   initializeStoredData()
 }
 
-// Helper to get current user ID from Supabase session
-const getCurrentUserId = (): string | null => {
-  if (typeof window === "undefined") return null
-  try {
-    // Supabase stores the session in localStorage with a specific key format
-    // We can try to find it or use the supabase client if it has it cached
-    const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL?.split("//")[1].split(".")[0]
-    const sessionStr = localStorage.getItem(`sb-${projectRef}-auth-token`)
-    if (sessionStr) {
-      const session = JSON.parse(sessionStr)
-      return session.user?.id || null
-    }
-  } catch {
+let cachedUserId: string | null = null
+
+/** Sync read of the active Supabase user id (updated via refreshCurrentUserId / auth listener). */
+export const getCurrentUserId = (): string | null => cachedUserId
+
+export const refreshCurrentUserId = async (): Promise<string | null> => {
+  if (!isSupabaseConfigured() || !supabase) {
+    cachedUserId = null
     return null
   }
-  return null
+
+  const { data: { session } } = await supabase.auth.getSession()
+  cachedUserId = session?.user?.id ?? null
+  return cachedUserId
 }
+
+function initAuthUserCache(): void {
+  if (typeof window === "undefined" || !supabase) return
+
+  void refreshCurrentUserId()
+  supabase.auth.onAuthStateChange((_event, session) => {
+    cachedUserId = session?.user?.id ?? null
+  })
+}
+
+initAuthUserCache()
 
 // Artificial delay helper
 const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -157,7 +165,7 @@ export const getRecentTransactions = (limit = 5): (Transaction & { customerName:
     .slice(0, limit)
 }
 
-export const addCustomer = (customer: Customer): { success: boolean; error?: string } => {
+export const addCustomer = (customer: Omit<Customer, "userId">): { success: boolean; error?: string } => {
   if (typeof window === "undefined") return { success: false }
 
   const userId = getCurrentUserId()
@@ -230,7 +238,7 @@ export const updateCustomerTrustStatus = (customerId: string, status: "approved"
   }
 }
 
-export const addTransaction = (transaction: Transaction): void => {
+export const addTransaction = (transaction: Omit<Transaction, "userId">): void => {
   if (typeof window === "undefined") return
 
   try {

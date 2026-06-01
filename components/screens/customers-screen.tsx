@@ -2,11 +2,11 @@
 
 import { useState, useMemo } from "react"
 import { getCustomers, deleteCustomer } from "@/lib/data-store"
-import { getStoredSession } from "@/lib/auth-store"
+import { hasActionPin, verifyActionPin, getPinErrorMessage, isLocked } from "@/lib/action-pin"
+import { PinInput } from "@/components/ui/pin-input"
 import { ArrowLeftIcon, UserPlusIcon, XIcon, SearchIcon, UndoIcon, TrashIcon } from "@/components/ui/icons"
-import ConfirmModal from "@/components/ui/confirm-modal"
-
 interface CustomersScreenProps {
+  userId: string
   onSelectCustomer: (customerId: string) => void
   onBack: () => void
   onRefresh?: () => void
@@ -16,20 +16,42 @@ interface CustomersScreenProps {
   language: string
 }
 
-export default function CustomersScreen({ onSelectCustomer, onBack, onRefresh, onNotifySuccess, onNotify, t, language }: CustomersScreenProps) {
+export default function CustomersScreen({ userId, onSelectCustomer, onBack, onRefresh, onNotifySuccess, onNotify, t, language }: CustomersScreenProps) {
   const allCustomers = useMemo(() => getCustomers(), [])
   const [searchTerm, setSearchTerm] = useState("")
   const [customerToDelete, setCustomerToDelete] = useState<string | null>(null)
   const [pin, setPin] = useState("")
   const [error, setError] = useState("")
+  const [isVerifying, setIsVerifying] = useState(false)
 
   const handleDeleteClick = (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
     setCustomerToDelete(id)
+    setPin("")
+    setError(hasActionPin(userId) ? "" : t("pinRequiredInSettings"))
   }
 
   const confirmDelete = async () => {
-    if (!customerToDelete) return
+    if (!customerToDelete || isVerifying) return
+
+    if (!hasActionPin(userId)) {
+      setError(t("pinRequiredInSettings"))
+      return
+    }
+
+    if (isLocked()) {
+      setError(getPinErrorMessage("locked", t))
+      return
+    }
+
+    setIsVerifying(true)
+    const result = await verifyActionPin(userId, pin)
+    setIsVerifying(false)
+
+    if (!result.success && result.error) {
+      setError(getPinErrorMessage(result.error, t))
+      return
+    }
 
     deleteCustomer(customerToDelete)
     onNotifySuccess?.(t("customerDeleted"))
@@ -156,6 +178,14 @@ export default function CustomersScreen({ onSelectCustomer, onBack, onRefresh, o
             </div>
 
             <div className="space-y-4">
+              {hasActionPin(userId) && (
+                <PinInput
+                  value={pin}
+                  onChange={setPin}
+                  disabled={isVerifying || isLocked()}
+                  autoFocus
+                />
+              )}
               {error && <p className="text-xs font-bold text-red-500 text-center">{error}</p>}
             </div>
 
@@ -172,6 +202,7 @@ export default function CustomersScreen({ onSelectCustomer, onBack, onRefresh, o
               </button>
               <button
                 onClick={confirmDelete}
+                disabled={isVerifying || isLocked() || (hasActionPin(userId) && pin.length < 4)}
                 className="flex-1 py-4 bg-red-500 text-white rounded-xl font-bold text-xs shadow-lg transition-all active:scale-95 disabled:opacity-50"
               >
                 {t("confirm")}

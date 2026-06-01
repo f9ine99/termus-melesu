@@ -2,12 +2,12 @@
 
 import { useState, useMemo } from "react"
 import { getCustomerById, getCustomerTransactions, updateCustomerTrustStatus, deleteTransaction } from "@/lib/data-store"
-import { getStoredSession } from "@/lib/auth-store"
+import { hasActionPin, verifyActionPin, getPinErrorMessage, isLocked } from "@/lib/action-pin"
+import { PinInput } from "@/components/ui/pin-input"
 import ActivityItem from "@/components/ui/activity-item"
 import { ArrowLeftIcon, BottleIcon, MoneyIcon, AddIcon, SendIcon, ReceiveIcon, CheckIcon, XIcon, TrashIcon } from "@/components/ui/icons"
-import ConfirmModal from "@/components/ui/confirm-modal"
-
 interface CustomerDetailScreenProps {
+  userId: string
   customerId: string
   onBack: () => void
   onNavigateToIssue: () => void
@@ -19,7 +19,7 @@ interface CustomerDetailScreenProps {
   language: string
 }
 
-export default function CustomerDetailScreen({ customerId, onBack, onNavigateToIssue, onNavigateToReturn, onRefresh, onNotifySuccess, onNotify, t, language }: CustomerDetailScreenProps) {
+export default function CustomerDetailScreen({ userId, customerId, onBack, onNavigateToIssue, onNavigateToReturn, onRefresh, onNotifySuccess, onNotify, t, language }: CustomerDetailScreenProps) {
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   const customer = useMemo(() => getCustomerById(customerId), [customerId, refreshTrigger])
@@ -28,9 +28,35 @@ export default function CustomerDetailScreen({ customerId, onBack, onNavigateToI
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [pin, setPin] = useState("")
   const [error, setError] = useState("")
+  const [isVerifying, setIsVerifying] = useState(false)
+
+  const openDeleteModal = (transactionId: string) => {
+    setDeleteId(transactionId)
+    setPin("")
+    setError(hasActionPin(userId) ? "" : t("pinRequiredInSettings"))
+  }
 
   const handleDelete = async () => {
-    if (!deleteId) return
+    if (!deleteId || isVerifying) return
+
+    if (!hasActionPin(userId)) {
+      setError(t("pinRequiredInSettings"))
+      return
+    }
+
+    if (isLocked()) {
+      setError(getPinErrorMessage("locked", t))
+      return
+    }
+
+    setIsVerifying(true)
+    const result = await verifyActionPin(userId, pin)
+    setIsVerifying(false)
+
+    if (!result.success && result.error) {
+      setError(getPinErrorMessage(result.error, t))
+      return
+    }
 
     deleteTransaction(deleteId)
     setDeleteId(null)
@@ -158,7 +184,7 @@ export default function CustomerDetailScreen({ customerId, onBack, onNavigateToI
                     <ActivityItem transaction={txn} t={t} />
                   </div>
                   <button
-                    onClick={() => setDeleteId(txn.id)}
+                    onClick={() => openDeleteModal(txn.id)}
                     className="p-2.5 bg-secondary/50 text-muted-foreground hover:bg-red-500 hover:text-white rounded-xl transition-all shrink-0"
                     title={t("deleteTransaction")}
                   >
@@ -188,6 +214,14 @@ export default function CustomerDetailScreen({ customerId, onBack, onNavigateToI
             </div>
 
             <div className="space-y-4">
+              {hasActionPin(userId) && (
+                <PinInput
+                  value={pin}
+                  onChange={setPin}
+                  disabled={isVerifying || isLocked()}
+                  autoFocus
+                />
+              )}
               {error && <p className="text-xs font-bold text-red-500 text-center">{error}</p>}
             </div>
 
@@ -204,6 +238,7 @@ export default function CustomerDetailScreen({ customerId, onBack, onNavigateToI
               </button>
               <button
                 onClick={handleDelete}
+                disabled={isVerifying || isLocked() || (hasActionPin(userId) && pin.length < 4)}
                 className="flex-1 py-4 bg-red-500 text-white rounded-xl font-bold text-xs shadow-lg transition-all active:scale-95 disabled:opacity-50"
               >
                 {t("confirm")}

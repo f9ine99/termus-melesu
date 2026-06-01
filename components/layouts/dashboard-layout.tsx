@@ -196,6 +196,7 @@ export default function DashboardLayout({ user, onLogout }: DashboardLayoutProps
         return (
           <CustomersScreen
             key={`customers-${dataVersion}`}
+            userId={user.id}
             onSelectCustomer={(customerId) => navigateTo("customer-detail", { customerId })}
             onBack={goBack}
             onRefresh={refreshData}
@@ -209,6 +210,7 @@ export default function DashboardLayout({ user, onLogout }: DashboardLayoutProps
         return (
           <CustomerDetailScreen
             key={`customer-detail-${dataVersion}-${currentScreen.params?.customerId}`}
+            userId={user.id}
             customerId={currentScreen.params?.customerId}
             onBack={goBack}
             onNavigateToIssue={() => navigateTo("transaction", { customerId: currentScreen.params?.customerId, type: "issue" })}

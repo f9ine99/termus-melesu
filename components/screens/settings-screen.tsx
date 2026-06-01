@@ -4,6 +4,15 @@ import { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
 import { useColorTheme, type ColorTheme } from "@/components/color-theme-provider"
 import { deleteUserAccount, logoutUser, updateUserName, updateUserPassword } from "@/lib/auth-store"
+import {
+  hasActionPin,
+  setActionPin,
+  verifyActionPin,
+  getPinErrorMessage,
+  isLocked,
+  isValidPinFormat,
+} from "@/lib/action-pin"
+import { PinInput } from "@/components/ui/pin-input"
 import { exportData, importData, getCustomers, getTransactions } from "@/lib/data-store"
 import { pushAllDataToCloud, pullAllDataFromCloud, isSupabaseConfigured } from "@/lib/sync-service"
 import type { SafeUser } from "@/lib/types"
@@ -35,6 +44,11 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
   const [showImportConfirm, setShowImportConfirm] = useState(false)
   const [pin, setPin] = useState("")
   const [error, setError] = useState("")
+  const [isVerifyingPin, setIsVerifyingPin] = useState(false)
+  const [showPinSetupModal, setShowPinSetupModal] = useState(false)
+  const [newPin, setNewPin] = useState("")
+  const [confirmPinValue, setConfirmPinValue] = useState("")
+  const [isSavingPin, setIsSavingPin] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
   const [isRestoring, setIsRestoring] = useState(false)
   const [showRestoreConfirm, setShowRestoreConfirm] = useState(false)
@@ -110,6 +124,8 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
     reader.onload = (event) => {
       const content = event.target?.result as string
       setImportFile(content)
+      setPin("")
+      setError(hasActionPin(user.id) ? "" : t("pinRequiredInSettings"))
       setShowImportConfirm(true)
       // Reset input
       e.target.value = ""
@@ -118,7 +134,26 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
   }
 
   const confirmImport = async () => {
-    if (!importFile) return
+    if (!importFile || isVerifyingPin) return
+
+    if (!hasActionPin(user.id)) {
+      setError(t("pinRequiredInSettings"))
+      return
+    }
+
+    if (isLocked()) {
+      setError(getPinErrorMessage("locked", t))
+      return
+    }
+
+    setIsVerifyingPin(true)
+    const pinResult = await verifyActionPin(user.id, pin)
+    setIsVerifyingPin(false)
+
+    if (!pinResult.success && pinResult.error) {
+      setError(getPinErrorMessage(pinResult.error, t))
+      return
+    }
 
     const result = importData(importFile)
     if (result.success) {
@@ -131,6 +166,35 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
     } else {
       setError(t("importError"))
     }
+  }
+
+  const handleSaveDeletionPin = async () => {
+    setError("")
+
+    if (!isValidPinFormat(newPin)) {
+      setError(t("pinLengthError"))
+      return
+    }
+
+    if (newPin !== confirmPinValue) {
+      setError(t("pinsDoNotMatch"))
+      return
+    }
+
+    setIsSavingPin(true)
+    const result = await setActionPin(user.id, newPin)
+    setIsSavingPin(false)
+
+    if (!result.success) {
+      setError(t("pinLengthError"))
+      return
+    }
+
+    onNotifySuccess?.(t("pinSetSuccess"))
+    setShowPinSetupModal(false)
+    setNewPin("")
+    setConfirmPinValue("")
+    setError("")
   }
 
   const handleCloudRestore = () => {
@@ -477,6 +541,31 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
                 type="button"
                 onClick={() => {
                   setError("")
+                  setNewPin("")
+                  setConfirmPinValue("")
+                  setShowPinSetupModal(true)
+                }}
+                className="w-full flex items-center justify-between p-6 hover:bg-secondary/50 active:bg-secondary transition-colors border-b border-border/50 group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                    <LockIcon className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-black text-sm text-foreground">
+                      {hasActionPin(user.id) ? t("changeDeletionPin") : t("setDeletionPin")}
+                    </p>
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                      {t("deletionPinHint")}
+                    </p>
+                  </div>
+                </div>
+                <ArrowLeftIcon className="w-4 h-4 text-muted-foreground/30 rotate-180" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setError("")
                   setDeleteConfirmationText("")
                   setShowDeleteAccountConfirm(true)
                 }}
@@ -653,6 +742,15 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
               <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mt-2">{t("warningOverwrite")}</p>
             </div>
 
+            {hasActionPin(user.id) && (
+              <PinInput
+                value={pin}
+                onChange={setPin}
+                disabled={isVerifyingPin || isLocked()}
+                autoFocus
+              />
+            )}
+
             {error && <p className="text-xs font-bold text-red-500 text-center">{error}</p>}
 
             <div className="flex gap-3">
@@ -660,6 +758,7 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
                 onClick={() => {
                   setShowImportConfirm(false)
                   setImportFile(null)
+                  setPin("")
                   setError("")
                 }}
                 className="flex-1 py-4 bg-secondary text-foreground rounded-xl font-bold text-xs transition-all active:scale-95"
@@ -668,7 +767,59 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
               </button>
               <button
                 onClick={confirmImport}
-                className="flex-1 py-4 bg-orange-500 text-white rounded-xl font-bold text-xs shadow-lg transition-all active:scale-95"
+                disabled={isVerifyingPin || isLocked() || (hasActionPin(user.id) && pin.length < 4)}
+                className="flex-1 py-4 bg-orange-500 text-white rounded-xl font-bold text-xs shadow-lg transition-all active:scale-95 disabled:opacity-50"
+              >
+                {t("confirm")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Deletion PIN Setup Modal */}
+      {showPinSetupModal && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-[100] p-6 animate-in fade-in duration-300">
+          <div className="w-full max-w-sm bg-card border border-border rounded-[2rem] p-8 space-y-6 shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="space-y-2 text-center">
+              <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <LockIcon className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold tracking-tight text-foreground">
+                {hasActionPin(user.id) ? t("changeDeletionPin") : t("setDeletionPin")}
+              </h3>
+              <p className="text-xs text-muted-foreground">{t("deletionPinHint")}</p>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">
+                {t("newPin")}
+              </p>
+              <PinInput value={newPin} onChange={setNewPin} disabled={isSavingPin} autoFocus />
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">
+                {t("confirmPin")}
+              </p>
+              <PinInput value={confirmPinValue} onChange={setConfirmPinValue} disabled={isSavingPin} />
+            </div>
+
+            {error && <p className="text-xs font-bold text-red-500 text-center">{error}</p>}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowPinSetupModal(false)
+                  setNewPin("")
+                  setConfirmPinValue("")
+                  setError("")
+                }}
+                className="flex-1 py-4 bg-secondary text-foreground rounded-xl font-bold text-xs transition-all active:scale-95"
+              >
+                {t("cancel")}
+              </button>
+              <button
+                onClick={handleSaveDeletionPin}
+                disabled={isSavingPin || newPin.length < 4 || confirmPinValue.length < 4}
+                className="flex-1 py-4 bg-primary text-primary-foreground rounded-xl font-bold text-xs shadow-lg transition-all active:scale-95 disabled:opacity-50"
               >
                 {t("confirm")}
               </button>

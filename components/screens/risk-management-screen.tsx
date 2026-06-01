@@ -18,7 +18,7 @@ export default function RiskManagementScreen({ onBack, onNotify, t, language }: 
     const [settlingCustomer, setSettlingCustomer] = useState<Customer | null>(null)
 
     const handleSettle = (customer: Customer) => {
-        const transaction: Transaction = {
+        const transaction: Omit<Transaction, "userId"> = {
             id: crypto.randomUUID(),
             customerId: customer.id,
             customerName: customer.name,

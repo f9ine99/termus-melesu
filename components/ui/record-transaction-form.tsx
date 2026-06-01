@@ -181,7 +181,7 @@ export default function RecordTransactionForm({ onTransactionComplete, onNavigat
     // Use the first item's details for summary fields, but store full list in items
     const summaryItem = finalCart[0]
 
-    const transaction: Transaction = {
+    const transaction: Omit<Transaction, "userId"> = {
       id: `txn_${Date.now()}`,
       customerId: customer.id,
       type: transactionType,
@@ -237,7 +237,7 @@ export default function RecordTransactionForm({ onTransactionComplete, onNavigat
       return
     }
 
-    const newCustomer: Customer = {
+    const newCustomer: Omit<Customer, "userId"> = {
       id: `c_${Date.now()}`,
       name: newCustomerName,
       phone: newCustomerPhone,
@@ -254,7 +254,8 @@ export default function RecordTransactionForm({ onTransactionComplete, onNavigat
       return
     }
 
-    setCustomer(newCustomer)
+    const created = getCustomers().find((c) => c.id === newCustomer.id)
+    if (created) setCustomer(created)
     setIsAddingNewCustomer(false)
     onSuccess?.(`${t("customerCreated")}: ${newCustomer.name}`)
     setNewCustomerName("")

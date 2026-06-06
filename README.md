@@ -99,6 +99,7 @@
 - `app/`: Application routes and API endpoints.
 - `components/`: Modular UI components and screen-specific logic.
 - `lib/`: Shared utilities, Supabase client, and core business logic.
+- `docs/`: Compliance runbooks (`INCIDENT_RESPONSE.md`, `DATA_PROCESSORS.md`).
 - `public/`: Static assets and media.
 - `styles/`: Global styling and Tailwind configurations.
 

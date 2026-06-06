@@ -221,6 +221,11 @@ export const translations = {
         tryAgain: "Try Again",
         askFollowUp: "Ask a follow-up question...",
         aiInsights: "AI Insights",
+        aiInsightsConsent: "Enable AI Insights",
+        aiInsightsConsentHint: "Send pseudonymized aggregates to Groq for summaries",
+        aiInsightsConsentNotice:
+            "AI features use minimized business stats only. Customer names are replaced with labels like Customer 1 before processing.",
+        aiInsightsConsentRequired: "Enable AI Insights in Settings to use this feature.",
         intelligentAnalysis: "Intelligent Analysis",
         analyzingTransactions: "Analyzing Transactions...",
         thisMayTakeAMoment: "This may take a moment",
@@ -485,6 +490,11 @@ export const translations = {
         tryAgain: "እንደገና ሞክር",
         askFollowUp: "ተጨማሪ ጥያቄ ይጠይቁ...",
         aiInsights: "AI ግንዛቤዎች",
+        aiInsightsConsent: "AI ግንዛቤዎችን አንቃ",
+        aiInsightsConsentHint: "ለማጠቃለያ የተቀነሱ ውሂቦችን ወደ Groq ይላካሉ",
+        aiInsightsConsentNotice:
+            "AI ባህሪዎች የተቀነሱ የንግድ ስታትስቲክስን ብቻ ይጠቀማሉ። የደንበኛ ስሞች ከማቀናበር በፊት በ Customer 1 ያሉ መለያዎች ይተካሉ።",
+        aiInsightsConsentRequired: "ይህን ባህሪ ለመጠቀም በቅንብሮች ውስጥ AI ግንዛቤዎችን ያንቁ።",
         intelligentAnalysis: "ብልህ ትንታኔ",
         analyzingTransactions: "ግብይቶችን በመተንተን ላይ...",
         thisMayTakeAMoment: "ይህ ጥቂት ጊዜ ሊወስድ ይችላል",

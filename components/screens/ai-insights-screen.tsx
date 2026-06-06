@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react"
 import { getTransactions } from "@/lib/data-store"
 import { getTransactionSummary, filterTransactionsByPeriod, type SummaryPeriod } from "@/lib/ai-service"
+import { hasAiConsent } from "@/lib/ai-consent"
 import { ArrowLeftIcon, SparkleIcon, CopyIcon, CheckIcon, XIcon, RefreshIcon, ChartIcon, InfoIcon, SendIcon } from "@/components/ui/icons"
 import type { Language } from "@/lib/translations"
 import ReactMarkdown from "react-markdown"
@@ -27,7 +28,12 @@ export default function AiInsightsScreen({ onBack, onNotify, initialPeriod = "to
     const [summaryLoading, setSummaryLoading] = useState(false)
     const [summaryError, setSummaryError] = useState<string | null>(null)
     const [copied, setCopied] = useState(false)
+    const [aiEnabled, setAiEnabled] = useState(false)
     const chatEndRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        setAiEnabled(hasAiConsent())
+    }, [])
 
     const allTransactions = useMemo(() => getTransactions(), [])
 
@@ -72,7 +78,11 @@ export default function AiInsightsScreen({ onBack, onNotify, initialPeriod = "to
         )
 
         if (result.error) {
-            setSummaryError(result.error)
+            setSummaryError(
+                result.error === "ai_consent_required"
+                    ? t("aiInsightsConsentRequired")
+                    : result.error,
+            )
         } else {
             if (isFollowUp) {
                 setMessages([...newMessages, { role: "assistant", content: result.summary }])
@@ -140,6 +150,13 @@ export default function AiInsightsScreen({ onBack, onNotify, initialPeriod = "to
             </header>
 
             <main className="flex-1 px-6 pt-6 pb-32 overflow-y-auto no-scrollbar space-y-8 relative z-10">
+                {!aiEnabled && (
+                    <div className="p-5 bg-violet-500/10 border border-violet-500/20 rounded-[1.5rem] space-y-2">
+                        <p className="text-sm font-bold text-foreground">{t("aiInsightsConsentRequired")}</p>
+                        <p className="text-xs text-muted-foreground leading-relaxed">{t("aiInsightsConsentNotice")}</p>
+                    </div>
+                )}
+
                 {/* Period Selector - Premium */}
                 <div className="bg-card/30 backdrop-blur-md border border-border/50 rounded-[2.5rem] p-2 flex gap-2 shadow-soft">
                     {(["today", "week", "month"] as SummaryPeriod[]).map((period) => (
@@ -172,7 +189,8 @@ export default function AiInsightsScreen({ onBack, onNotify, initialPeriod = "to
                             </div>
                             <button
                                 onClick={() => handleGenerateSummary(false)}
-                                className="px-8 py-4 bg-primary text-primary-foreground rounded-2xl text-[10px] font-black uppercase tracking-wider shadow-premium active:scale-95 transition-all"
+                                disabled={!aiEnabled}
+                                className="px-8 py-4 bg-primary text-primary-foreground rounded-2xl text-[10px] font-black uppercase tracking-wider shadow-premium active:scale-95 transition-all disabled:opacity-50"
                                 style={{ wordSpacing: '0.2em' }}
                             >
                                 {t("generateNow") || "Generate Now"}

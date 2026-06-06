@@ -16,7 +16,8 @@ import { PinInput } from "@/components/ui/pin-input"
 import { exportData, importData, getCustomers, getTransactions } from "@/lib/data-store"
 import { pushAllDataToCloud, pullAllDataFromCloud, isSupabaseConfigured } from "@/lib/sync-service"
 import type { SafeUser } from "@/lib/types"
-import { ArrowLeftIcon, LogoutIcon, SettingsIcon, PeopleIcon, ChartIcon, SunIcon, MoonIcon, CheckIcon, DownloadIcon, UploadIcon, SendIcon, LockIcon, CloudIcon, ShieldCheckIcon, TrashIcon } from "@/components/ui/icons"
+import { hasAiConsent, setAiConsent } from "@/lib/ai-consent"
+import { ArrowLeftIcon, LogoutIcon, SettingsIcon, PeopleIcon, ChartIcon, SunIcon, MoonIcon, CheckIcon, DownloadIcon, UploadIcon, SendIcon, LockIcon, CloudIcon, ShieldCheckIcon, TrashIcon, SparkleIcon } from "@/components/ui/icons"
 import { LEGAL_CONFIG } from "@/lib/config"
 
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt"
@@ -59,10 +60,12 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
   const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false)
   const [deleteConfirmationText, setDeleteConfirmationText] = useState("")
   const [isDeletingAccount, setIsDeletingAccount] = useState(false)
+  const [aiInsightsEnabled, setAiInsightsEnabled] = useState(false)
 
   // Avoid hydration mismatch
   useEffect(() => {
     setMounted(true)
+    setAiInsightsEnabled(hasAiConsent())
   }, [])
 
   const handleLogout = () => {
@@ -418,6 +421,30 @@ export default function SettingsScreen({ user, onLogout, onBack, t, language, on
           <div className="space-y-4">
             <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-1">{t("dataManagement")}</h3>
             <div className="bg-card/50 backdrop-blur-sm border border-border rounded-[2.5rem] overflow-hidden shadow-soft">
+              <button
+                type="button"
+                onClick={() => {
+                  const next = !aiInsightsEnabled
+                  setAiInsightsEnabled(next)
+                  setAiConsent(next)
+                  if (next) onNotifySuccess?.(t("aiInsightsConsent"))
+                }}
+                className="w-full flex items-center justify-between p-6 hover:bg-secondary/50 transition-colors border-b border-border/50 group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-600 group-hover:bg-violet-500 group-hover:text-white transition-all">
+                    <SparkleIcon className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-black text-sm text-foreground">{t("aiInsightsConsent")}</p>
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{t("aiInsightsConsentHint")}</p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                  {mounted ? (aiInsightsEnabled ? "ON" : "OFF") : "..."}
+                </span>
+              </button>
+
               <button
                 onClick={handleExport}
                 className="w-full flex items-center justify-between p-6 hover:bg-secondary/50 transition-colors border-b border-border/50 group"

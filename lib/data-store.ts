@@ -1,8 +1,12 @@
 // Client-side data store for customers and transactions
 // Offline-first with Supabase sync
 
+import { clearUserAuditLog, getAuditEvents, recordAuditEvent } from "./audit-log"
 import type { Customer, Transaction, InventoryItem, SafeUser } from "./types"
+import { getCurrentUserId } from "./session-user"
 import { supabase, isSupabaseConfigured } from "./supabase"
+
+export { getCurrentUserId, refreshCurrentUserId } from "./session-user"
 import {
   syncCustomerToCloud,
   syncCustomerUpdateToCloud,
@@ -39,33 +43,6 @@ const initializeStoredData = () => {
 if (typeof window !== "undefined") {
   initializeStoredData()
 }
-
-let cachedUserId: string | null = null
-
-/** Sync read of the active Supabase user id (updated via refreshCurrentUserId / auth listener). */
-export const getCurrentUserId = (): string | null => cachedUserId
-
-export const refreshCurrentUserId = async (): Promise<string | null> => {
-  if (!isSupabaseConfigured() || !supabase) {
-    cachedUserId = null
-    return null
-  }
-
-  const { data: { session } } = await supabase.auth.getSession()
-  cachedUserId = session?.user?.id ?? null
-  return cachedUserId
-}
-
-function initAuthUserCache(): void {
-  if (typeof window === "undefined" || !supabase) return
-
-  void refreshCurrentUserId()
-  supabase.auth.onAuthStateChange((_event, session) => {
-    cachedUserId = session?.user?.id ?? null
-  })
-}
-
-initAuthUserCache()
 
 // Artificial delay helper
 const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -435,6 +412,9 @@ export const exportData = (): string => {
   if (typeof window === "undefined") return ""
 
   const userId = getCurrentUserId()
+  if (userId) {
+    recordAuditEvent("data_exported", { userId, success: true })
+  }
 
   const data = {
     exportType: "gdpr_portability",
@@ -445,6 +425,7 @@ export const exportData = (): string => {
     },
     customers: getCustomers(),
     transactions: getTransactions(),
+    auditEvents: getAuditEvents(userId),
   }
 
   return JSON.stringify(data, null, 2)
@@ -468,6 +449,7 @@ export const clearCurrentUserLocalData = (): void => {
       TRANSACTIONS_KEY,
       JSON.stringify(allTransactions.filter((transaction) => transaction.userId !== userId)),
     )
+    clearUserAuditLog(userId)
   } catch (e) {
     console.error("Failed to clear local user data:", e)
   }
@@ -504,6 +486,7 @@ export const importData = (jsonString: string): { success: boolean; error?: stri
     })
     localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify([...otherUsersTransactions, ...rawTransactions]))
 
+    recordAuditEvent("data_imported", { userId, success: true })
     return { success: true }
   } catch (e) {
     console.error("Import failed:", e)

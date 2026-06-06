@@ -2,6 +2,7 @@
 import { supabase, isSupabaseConfigured } from "./supabase"
 import type { SafeUser } from "./types"
 import { APP_CONFIG, LEGAL_CONFIG } from "./config"
+import { recordAuditEvent, recordPolicyConsent } from "./audit-log"
 import { clearCurrentUserLocalData } from "./data-store"
 import { clearPendingSyncQueue } from "./sync-service"
 
@@ -59,6 +60,7 @@ export const acceptCurrentPolicyConsent = async (): Promise<AuthResult> => {
     if (error) throw error
 
     if (data.user) {
+      recordPolicyConsent(data.user.id)
       return {
         success: true,
         user: {
@@ -113,8 +115,11 @@ export const registerUser = async (
     if (error) throw error
 
     if (data.user) {
-      // If email confirmation is enabled, the user might not be "fully" created until confirmed
-      // but Supabase still returns the user object.
+      recordAuditEvent("account_registered", {
+        userId: data.user.id,
+        policyVersion: consentVersion,
+        success: true,
+      })
       return {
         success: true,
         user: {
@@ -186,9 +191,12 @@ export const deleteUserAccount = async (): Promise<AuthResult> => {
 
   try {
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.access_token) {
+    if (!session?.access_token || !session.user) {
       return { success: false, error: "Not authenticated" }
     }
+
+    const userId = session.user.id
+    recordAuditEvent("account_delete_requested", { userId, success: true })
 
     const response = await fetch("/api/account/delete", {
       method: "POST",
@@ -199,12 +207,14 @@ export const deleteUserAccount = async (): Promise<AuthResult> => {
 
     const payload = await response.json().catch(() => ({}))
     if (!response.ok) {
+      recordAuditEvent("account_delete_failed", { userId, success: false })
       return {
         success: false,
         error: payload.error || "Failed to delete account",
       }
     }
 
+    recordAuditEvent("account_delete_completed", { userId, success: true })
     clearCurrentUserLocalData()
     clearPendingSyncQueue()
     await supabase.auth.signOut()
@@ -212,6 +222,10 @@ export const deleteUserAccount = async (): Promise<AuthResult> => {
     return { success: true, message: "Account deleted successfully" }
   } catch (e: any) {
     console.error("Account deletion failed:", e)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user) {
+      recordAuditEvent("account_delete_failed", { userId: session.user.id, success: false })
+    }
     return { success: false, error: e.message || "Failed to delete account" }
   }
 }

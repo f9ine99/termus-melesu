@@ -59,10 +59,25 @@ export async function POST(request: NextRequest) {
     const { error: deleteUserError } = await adminClient.auth.admin.deleteUser(userId)
     if (deleteUserError) throw deleteUserError
 
+    console.info(
+      JSON.stringify({
+        event: "account_delete_completed",
+        userId,
+        timestamp: new Date().toISOString(),
+      }),
+    )
+
     return NextResponse.json({ success: true })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Failed to delete account"
-    console.error("Account deletion failed:", error)
+    console.error(
+      JSON.stringify({
+        event: "account_delete_failed",
+        userId,
+        timestamp: new Date().toISOString(),
+        error: message,
+      }),
+    )
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }

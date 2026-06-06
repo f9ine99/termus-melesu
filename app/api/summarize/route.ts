@@ -1,13 +1,14 @@
 // API Route for Groq-powered transaction summarization
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import type { MinimizedEnhancedContext, MinimizedQuickStats } from "@/lib/ai-minimization"
+import { sanitizeChatMessage } from "@/lib/ai-minimization"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
-// System prompt for the AI summarizer
 const SYSTEM_PROMPT = `You are "Retra AI", a highly precise Strategic Business Advisor for retail shopkeepers in Ethiopia. 
 Your creator is f9ine99.
 
@@ -21,6 +22,7 @@ Context & Terminology:
 - "Returned Bottles": Inventory brought back by customers (previously "Return").
 - "Inventory Balance Change": The net difference between borrowed and returned items (previously "Net Change").
 - "Bottle Deposit": Cash held as security for borrowed bottles (previously "Deposit Amount").
+- Customer labels like "Customer 1" are pseudonyms; do not invent real identities.
 
 Strict Guidelines:
 1. DATA INTEGRITY: Use ONLY the provided "Verified Stats" and "Enhanced Context" for reporting.
@@ -33,94 +35,95 @@ Strict Guidelines:
 5. TONE: Professional, executive, and direct. Avoid casual or purely operational language.
 6. FORMATTING: Use Markdown (bolding, bullet points). DO NOT use tables in the "Key Metrics" section; use bullet points instead.`
 
-
-
-interface TransactionData {
-    id: string
-    customerName: string
-    type: "issue" | "return"
-    category: string
-    brand: string
-    bottleCount: number
-    depositAmount: number
-    timestamp: string
-}
-
 interface ChatMessage {
-    role: "user" | "assistant" | "system"
-    content: string
+  role: "user" | "assistant" | "system"
+  content: string
 }
 
 interface SummarizeRequest {
-    transactions: TransactionData[]
-    stats: any // Pre-calculated stats
-    enhancedContext?: any // Trends, Risk
-    period: "today" | "week" | "month" | "custom"
-    language: "en" | "am"
-    messages?: ChatMessage[] // Optional messages for chat history
+  stats: MinimizedQuickStats & { totalDepositsHeld: number }
+  enhancedContext: MinimizedEnhancedContext
+  period: "today" | "week" | "month" | "custom"
+  language: "en" | "am"
+  messages?: ChatMessage[]
+}
+
+function formatRiskAlerts(context: MinimizedEnhancedContext): string {
+  if (!context.riskAlerts.length) {
+    return "No high-risk customers identified."
+  }
+
+  return context.riskAlerts
+    .map(
+      (c) =>
+        `- ${c.customerLabel}: ${c.outstanding} bottles outstanding, inactive for ${c.daysInactive} days (${c.trustStatus} trust)`,
+    )
+    .join("\n")
+}
+
+function formatCategoryBreakdown(context: MinimizedEnhancedContext): string {
+  if (!context.categoryBreakdown.length) {
+    return "No category breakdown available."
+  }
+
+  return context.categoryBreakdown
+    .map((row) => `- ${row.category} / ${row.brand}: ${row.issued} issued, ${row.returned} returned`)
+    .join("\n")
 }
 
 export async function POST(request: NextRequest) {
-    try {
-        if (!supabaseUrl || !supabaseAnonKey) {
-            return NextResponse.json({ error: "Supabase is not configured" }, { status: 500 })
-        }
+  try {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 500 })
+    }
 
-        if (!GROQ_API_KEY) {
-            return NextResponse.json(
-                { error: "Groq API key not configured" },
-                { status: 500 }
-            )
-        }
+    if (!GROQ_API_KEY) {
+      return NextResponse.json({ error: "Groq API key not configured" }, { status: 500 })
+    }
 
-        const authHeader = request.headers.get("Authorization")
-        if (!authHeader?.startsWith("Bearer ")) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
+    const authHeader = request.headers.get("Authorization")
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
-        const accessToken = authHeader.slice("Bearer ".length).trim()
-        if (!accessToken) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
+    const accessToken = authHeader.slice("Bearer ".length).trim()
+    if (!accessToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
-        const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-            auth: { autoRefreshToken: false, persistSession: false },
-        })
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
 
-        const { data: userData, error: userError } = await userClient.auth.getUser(accessToken)
-        if (userError || !userData.user) {
-            return NextResponse.json({ error: "Invalid or expired session" }, { status: 401 })
-        }
+    const { data: userData, error: userError } = await userClient.auth.getUser(accessToken)
+    if (userError || !userData.user) {
+      return NextResponse.json({ error: "Invalid or expired session" }, { status: 401 })
+    }
 
-        const body: SummarizeRequest = await request.json()
-        const { transactions, stats, enhancedContext, period, language, messages = [] } = body
+    const body: SummarizeRequest = await request.json()
+    const { stats, enhancedContext, period, language, messages = [] } = body
 
-        if (!transactions || transactions.length === 0) {
-            return NextResponse.json(
-                { error: "No transactions to summarize" },
-                { status: 400 }
-            )
-        }
+    if (!stats || stats.transactionCount === 0) {
+      return NextResponse.json({ error: "No transactions to summarize" }, { status: 400 })
+    }
 
-        // Build the prompt with transaction data
-        const periodLabel = {
-            today: language === "am" ? "ዛሬ" : "Today",
-            week: language === "am" ? "ባለፈው ሳምንት" : "This Week",
-            month: language === "am" ? "ባለፈው ወር" : "This Month",
-            custom: language === "am" ? "የተመረጠ ጊዜ" : "Selected Period",
-        }[period]
+    const periodLabel = {
+      today: language === "am" ? "ዛሬ" : "Today",
+      week: language === "am" ? "ባለፈው ሳምንት" : "This Week",
+      month: language === "am" ? "ባለፈው ወር" : "This Month",
+      custom: language === "am" ? "የተመረጠ ጊዜ" : "Selected Period",
+    }[period]
 
-        const languageInstruction = language === "am"
-            ? "Respond in Amharic (አማርኛ)."
-            : "Respond in English."
+    const languageInstruction = language === "am"
+      ? "Respond in Amharic (አማርኛ)."
+      : "Respond in English."
 
-        // If this is the first message (no history), create the initial summary prompt
-        let finalMessages: ChatMessage[] = []
+    let finalMessages: ChatMessage[] = []
 
-        if (messages.length === 0) {
-            const userPrompt = `${languageInstruction}
+    if (messages.length === 0) {
+      const userPrompt = `${languageInstruction}
 
-Provide a precise and strategic summary for ${periodLabel} based on this data:
+Provide a precise and strategic summary for ${periodLabel} based on this minimized business data (customer names are pseudonymized):
 
 ### 1. Verified Stats (Ground Truth):
 - Total Borrowed Bottles: ${stats.issued}
@@ -131,13 +134,17 @@ Provide a precise and strategic summary for ${periodLabel} based on this data:
 - Total Transaction Count: ${stats.transactionCount}
 
 ### 2. Trend Analysis:
-- Previous Period Stats: ${JSON.stringify(enhancedContext?.prevStats || "N/A")}
+- Previous Period Stats: ${JSON.stringify(enhancedContext.prevStats)}
 - Growth/Decline: Compare current vs previous.
 
-### 3. Customer Risk Alerts:
-${enhancedContext?.riskAlerts?.length > 0
-                    ? enhancedContext.riskAlerts.map((c: any) => `- ${c.name}: ${c.outstanding} bottles, inactive for ${c.daysInactive} days`).join("\n")
-                    : "No high-risk customers identified."}
+### 3. Category Breakdown:
+${formatCategoryBreakdown(enhancedContext)}
+
+### 4. Customer Risk Alerts (pseudonymized):
+${formatRiskAlerts(enhancedContext)}
+
+### 5. Top Active Customers (pseudonymized):
+${stats.topCustomers.map((c) => `- ${c.customerLabel}: ${c.issued} issued, ${c.returned} returned`).join("\n") || "None"}
 
 Output Structure:
 1. **Executive Summary**: 2-3 sentences focusing on strategic performance, program validation, and trends.
@@ -151,60 +158,52 @@ Output Structure:
 3. **Risk & Alerts**: Detailed assessment of customer risks or reassurance of program stability.
 4. **Actionable Insight**: 1 high-impact strategic recommendation.`
 
-            finalMessages = [
-                { role: "system", content: SYSTEM_PROMPT },
-                { role: "user", content: userPrompt }
-            ]
-        } else {
-            // For follow-up chat, include the full context
-            const contextMessage = `Verified Stats: ${JSON.stringify(stats)}
-Enhanced Context (Trends, Risk): ${JSON.stringify(enhancedContext)}
-Transaction Data: ${JSON.stringify(transactions)}`
+      finalMessages = [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: userPrompt },
+      ]
+    } else {
+      const contextMessage = `Verified Stats: ${JSON.stringify(stats)}
+Enhanced Context: ${JSON.stringify(enhancedContext)}`
 
-            finalMessages = [
-                { role: "system", content: `${SYSTEM_PROMPT}\n\n${contextMessage}` },
-                ...messages
-            ]
-        }
-
-        // Call Groq API
-        const response = await fetch(GROQ_API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${GROQ_API_KEY}`,
-            },
-            body: JSON.stringify({
-                model: "openai/gpt-oss-120b",
-                messages: finalMessages,
-                temperature: 1,
-                max_completion_tokens: 8192,
-                top_p: 1,
-                reasoning_effort: "medium",
-            }),
-        })
-
-        if (!response.ok) {
-            const errorData = await response.json()
-            console.error("Groq API error:", errorData)
-
-            const errorMessage = errorData.error?.message || "Failed to generate summary"
-
-            return NextResponse.json(
-                { error: errorMessage },
-                { status: response.status }
-            )
-        }
-
-        const data = await response.json()
-        const summary = data.choices?.[0]?.message?.content || "Unable to generate summary"
-
-        return NextResponse.json({ summary })
-    } catch (error) {
-        console.error("Summarize API error:", error)
-        return NextResponse.json(
-            { error: "Internal server error" },
-            { status: 500 }
-        )
+      finalMessages = [
+        { role: "system", content: `${SYSTEM_PROMPT}\n\n${contextMessage}` },
+        ...messages.map((msg) => ({
+          role: msg.role,
+          content: msg.role === "user" ? sanitizeChatMessage(msg.content) : msg.content,
+        })),
+      ]
     }
+
+    const response = await fetch(GROQ_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${GROQ_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "openai/gpt-oss-120b",
+        messages: finalMessages,
+        temperature: 1,
+        max_completion_tokens: 8192,
+        top_p: 1,
+        reasoning_effort: "medium",
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error("Groq API error:", errorData)
+      const errorMessage = errorData.error?.message || "Failed to generate summary"
+      return NextResponse.json({ error: errorMessage }, { status: response.status })
+    }
+
+    const data = await response.json()
+    const summary = data.choices?.[0]?.message?.content || "Unable to generate summary"
+
+    return NextResponse.json({ summary })
+  } catch (error) {
+    console.error("Summarize API error:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { ArrowLeftIcon, LockIcon, BottleIcon } from "@/components/ui/icons"
-import { LEGAL_CONFIG } from "@/lib/config"
+import { LEGAL_CONFIG, RETENTION_CONFIG } from "@/lib/config"
 
 export default function PrivacyPage() {
     return (
@@ -38,9 +38,9 @@ export default function PrivacyPage() {
                             Your privacy is our priority. This policy explains how we collect, use, and protect your business data within Termus Melesu.
                         </p>
                         <div className="pt-2 flex items-center gap-4 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                            <span>Version 1.1.0</span>
+                            <span>Version 1.2.0</span>
                             <span className="w-1 h-1 bg-border rounded-full" />
-                            <span>Updated May 27, 2026</span>
+                            <span>Updated May 30, 2026</span>
                         </div>
                     </div>
                 </header>
@@ -50,7 +50,7 @@ export default function PrivacyPage() {
                     {/* Sidebar Navigation (Desktop) */}
                     <aside className="hidden md:block md:col-span-3 space-y-4 sticky top-24 h-fit">
                         <nav className="space-y-1">
-                            {["Data Collection", "Usage", "Security", "Third-Parties", "Your Rights", "Contact"].map((item, i) => (
+                            {["Data Collection", "Usage", "Security", "Third-Parties", "Your Rights", "Retention", "Contact"].map((item, i) => (
                                 <a
                                     key={item}
                                     href={`#section-${i + 1}`}
@@ -151,7 +151,7 @@ export default function PrivacyPage() {
                                     <ul className="list-none space-y-2 pl-0">
                                         <li className="text-muted-foreground font-medium">- <span className="text-foreground font-bold">Supabase</span>: authentication and cloud database synchronization.</li>
                                         <li className="text-muted-foreground font-medium">- <span className="text-foreground font-bold">Vercel Analytics</span>: product usage analytics.</li>
-                                        <li className="text-muted-foreground font-medium">- <span className="text-foreground font-bold">Groq</span>: AI summary generation when analytics features are used.</li>
+                                        <li className="text-muted-foreground font-medium">- <span className="text-foreground font-bold">Groq</span>: AI summary generation when you enable AI Insights. We send pseudonymized aggregates only (no customer names, phone numbers, or free-text notes).</li>
                                     </ul>
                                     <p className="text-muted-foreground leading-relaxed font-medium">
                                         These providers process data only to provide the contracted service to Retra.
@@ -188,6 +188,32 @@ export default function PrivacyPage() {
                         <section id="section-6" className="space-y-6 group">
                             <div className="flex items-center gap-4">
                                 <span className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-[10px] font-black text-primary shadow-sm">06</span>
+                                <h2 className="text-2xl font-black tracking-tight text-foreground group-hover:text-primary transition-colors">Data Retention</h2>
+                            </div>
+                            <div className="pl-12 space-y-4">
+                                <p className="text-muted-foreground leading-relaxed font-medium">
+                                    We keep personal and business data only as long as needed to provide the service:
+                                </p>
+                                <ul className="list-none space-y-3 pl-0">
+                                    {[
+                                        { title: "Account & ledger data", desc: RETENTION_CONFIG.ACCOUNT_AND_LEDGER },
+                                        { title: "Local device storage", desc: RETENTION_CONFIG.LOCAL_DEVICE },
+                                        { title: "Cloud sync", desc: RETENTION_CONFIG.CLOUD_SYNC },
+                                        { title: "Analytics", desc: RETENTION_CONFIG.ANALYTICS },
+                                        { title: "AI processing", desc: RETENTION_CONFIG.AI_PROCESSING },
+                                    ].map((item) => (
+                                        <li key={item.title} className="p-4 bg-secondary/20 rounded-2xl border border-border/50">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">{item.title}</p>
+                                            <p className="text-xs text-muted-foreground font-medium leading-relaxed">{item.desc}</p>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </section>
+
+                        <section id="section-7" className="space-y-6 group">
+                            <div className="flex items-center gap-4">
+                                <span className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-[10px] font-black text-primary shadow-sm">07</span>
                                 <h2 className="text-2xl font-black tracking-tight text-foreground group-hover:text-primary transition-colors">Contact Us</h2>
                             </div>
                             <div className="pl-12 space-y-4">

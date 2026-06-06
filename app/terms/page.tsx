@@ -37,9 +37,9 @@ export default function TermsPage() {
                             Please read these terms carefully before using our application. By accessing or using Termus Melesu, you agree to be bound by these terms.
                         </p>
                         <div className="pt-2 flex items-center gap-4 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                            <span>Version 1.1.0</span>
+                            <span>Version 1.2.0</span>
                             <span className="w-1 h-1 bg-border rounded-full" />
-                            <span>Updated May 27, 2026</span>
+                            <span>Updated May 30, 2026</span>
                         </div>
                     </div>
                 </header>
